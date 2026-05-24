@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="600" height="600">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0d1410"/>
+      <stop offset="100%" style="stop-color:#080d08"/>
+    </linearGradient>
+    <linearGradient id="tealGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#5dcfcc"/>
+      <stop offset="100%" style="stop-color:#3aaba8"/>
+    </linearGradient>
+    <linearGradient id="strokeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2a4a44"/>
+      <stop offset="100%" style="stop-color:#1a2e2a"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="softglow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <clipPath id="roundRect">
+      <rect width="600" height="600" rx="120"/>
+    </clipPath>
+  </defs>
+
+  <!-- App icon background -->
+  <rect width="600" height="600" rx="120" fill="url(#bg)"/>
+
+  <!-- Subtle inner border glow -->
+  <rect x="4" y="4" width="592" height="592" rx="117" fill="none" stroke="#1c3530" stroke-width="1.5" opacity="0.8"/>
+
+  <!-- Background texture — subtle diagonal lines -->
+  <g opacity="0.04" clip-path="url(#roundRect)">
+    <line x1="0" y1="150" x2="150" y2="0" stroke="#4dbbb8" stroke-width="1"/>
+    <line x1="0" y1="300" x2="300" y2="0" stroke="#4dbbb8" stroke-width="1"/>
+    <line x1="0" y1="450" x2="450" y2="0" stroke="#4dbbb8" stroke-width="1"/>
+    <line x1="0" y1="600" x2="600" y2="0" stroke="#4dbbb8" stroke-width="1"/>
+    <line x1="150" y1="600" x2="600" y2="150" stroke="#4dbbb8" stroke-width="1"/>
+    <line x1="300" y1="600" x2="600" y2="300" stroke="#4dbbb8" stroke-width="1"/>
+    <line x1="450" y1="600" x2="600" y2="450" stroke="#4dbbb8" stroke-width="1"/>
+  </g>
+
+  <!-- Shield shape -->
+  <path d="M300 90 L490 155 L490 320 Q490 450 300 530 Q110 450 110 320 L110 155 Z"
+        fill="none" stroke="url(#strokeGrad)" stroke-width="2" opacity="0.6"/>
+
+  <!-- Inner shield accent -->
+  <path d="M300 115 L468 172 L468 315 Q468 430 300 505 Q132 430 132 315 L132 172 Z"
+        fill="none" stroke="#4dbbb8" stroke-width="1" opacity="0.12"/>
+
+  <!-- Teal horizontal accent bar -->
+  <rect x="110" y="340" width="380" height="3" rx="1.5" fill="url(#tealGrad)" opacity="0.3"/>
+
+  <!-- CHINO — main word mark -->
+  <text
+    x="300" y="292"
+    text-anchor="middle"
+    font-family="'Arial Black', 'Impact', sans-serif"
+    font-weight="900"
+    font-size="118"
+    letter-spacing="8"
+    fill="url(#tealGrad)"
+    filter="url(#glow)"
+  >CHINO</text>
+
+  <!-- HQ — sub mark -->
+  <text
+    x="300" y="374"
+    text-anchor="middle"
+    font-family="'Arial Black', 'Impact', sans-serif"
+    font-weight="900"
+    font-size="72"
+    letter-spacing="18"
+    fill="#e2ded2"
+    opacity="0.85"
+  >HQ</text>
+
+  <!-- Decorative dot separators either side of HQ -->
+  <circle cx="200" cy="364" r="4" fill="#4dbbb8" opacity="0.5"/>
+  <circle cx="400" cy="364" r="4" fill="#4dbbb8" opacity="0.5"/>
+
+  <!-- Bottom tagline -->
+  <text
+    x="300" y="430"
+    text-anchor="middle"
+    font-family="'Arial', sans-serif"
+    font-weight="800"
+    font-size="18"
+    letter-spacing="5"
+    fill="#4dbbb8"
+    opacity="0.5"
+  >SPORTY · CREATIVE · READY</text>
+
+  <!-- Corner accent marks — top left -->
+  <line x1="120" y1="145" x2="150" y2="145" stroke="#4dbbb8" stroke-width="2" opacity="0.4"/>
+  <line x1="120" y1="145" x2="120" y2="175" stroke="#4dbbb8" stroke-width="2" opacity="0.4"/>
+
+  <!-- Corner accent marks — top right -->
+  <line x1="480" y1="145" x2="450" y2="145" stroke="#4dbbb8" stroke-width="2" opacity="0.4"/>
+  <line x1="480" y1="145" x2="480" y2="175" stroke="#4dbbb8" stroke-width="2" opacity="0.4"/>
+
+  <!-- Corner accent marks — bottom left -->
+  <line x1="120" y1="455" x2="150" y2="455" stroke="#4dbbb8" stroke-width="2" opacity="0.4"/>
+  <line x1="120" y1="455" x2="120" y2="425" stroke="#4dbbb8" stroke-width="2" opacity="0.4"/>
+
+  <!-- Corner accent marks — bottom right -->
+  <line x1="480" y1="455" x2="450" y2="455" stroke="#4dbbb8" stroke-width="2" opacity="0.4"/>
+  <line x1="480" y1="455" x2="480" y2="425" stroke="#4dbbb8" stroke-width="2" opacity="0.4"/>
+</svg>

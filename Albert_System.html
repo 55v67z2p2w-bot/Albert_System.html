@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Chino HQ">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#0a0f0a">
+  <title>Chino HQ</title>
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 680 680'><rect width='680' height='680' rx='148' fill='%230d1410'/><path d='M340 90 L560 170 L560 370 Q560 520 340 610 Q120 520 120 370 L120 170 Z' fill='none' stroke='%231c3530' stroke-width='2' opacity='0.7'/><text x='340' y='330' text-anchor='middle' font-family='Arial Black,sans-serif' font-weight='900' font-size='150' letter-spacing='6' fill='%234dbbb8'>CHINO</text><text x='340' y='430' text-anchor='middle' font-family='Arial Black,sans-serif' font-weight='900' font-size='90' letter-spacing='16' fill='%23e2ded2' opacity='0.85'>HQ</text><circle cx='230' cy='418' r='5' fill='%234dbbb8' opacity='0.5'/><circle cx='450' cy='418' r='5' fill='%234dbbb8' opacity='0.5'/></svg>">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; background: #0a0f0a; overscroll-behavior: none; }
+    body { overflow: hidden; }
+    #root { height: 100%; }
+    input, select, textarea, button { font-family: inherit; -webkit-appearance: none; appearance: none; }
+    select { background-image: none; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script>const _cw=console.warn;console.warn=(...a)=>{if(String(a[0]).includes('Babel'))return;_cw(...a);};</script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.3/babel.min.js"></script>
+  <script type="text/babel" data-presets="react">
+
+const Check = ({size=16,color='currentColor'}) => (<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>);
+const Trash2 = ({size=16,color='currentColor'}) => (<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>);
+const Plus = ({size=16,color='currentColor'}) => (<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>);
+const ChevDown = ({size=14,color='currentColor'}) => (<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>);
+const {useState,useEffect,useMemo} = React;
+
+const uid = () => Math.random().toString(36).slice(2,9);
+const TODAY_DATE = new Date().toISOString().split('T')[0];
+const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+const TODAY_IDX = (new Date().getDay()+6)%7;
+const TODAY = DAYS[TODAY_IDX];
+const HOUR = new Date().getHours();
+const fmtDate = d => d ? new Date(d+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}) : '';
+const store = {
+  get: k => { try { const v=localStorage.getItem(k); return v?JSON.parse(v):null; } catch{return null;} },
+  set: (k,v) => { try { localStorage.setItem(k,JSON.stringify(v)); } catch{} }
+};
+
+const MISSIONS = [
+  'Be ready','Train sharp','Help without being asked','Calm body, clear head',
+  'Strong, kind, prepared','Look after your kit','One good choice at a time',
+  'Recovery counts','Create something clever','Captain energy',
+  'Show up, do the work','Kit clean, mind clear'
+];
+
+const WARMUP_SESSIONS = [
+  {id:'wu1',name:'5-Minute Match Warm-Up',cat:'Warm-up',emoji:'🔥',time:'5 mins',diff:1,
+   needs:'Just you and some space',
+   steps:['2 mins easy jog on the spot or around the garden','10 leg swings each leg — forward and back','10 arm circles each arm — big and slow','10 hip circles — big and slow','10 high knees on the spot','10 butt kicks on the spot','10 jumping jacks to finish — you are ready'],
+   safety:'Never skip the warm-up. Cold muscles get injured.',cool:'None needed — this IS the warm-up'},
+  {id:'wu2',name:'Rugby Ready Warm-Up',cat:'Warm-up',emoji:'🏉',time:'6 mins',diff:1,
+   needs:'Some space, optional cones',
+   steps:['2 mins easy jog — shake everything loose','10 leg swings each side — forward and side','8 hip circles each direction — big and controlled','10 high knees to butt kicks on the spot','4 lateral shuffles left, 4 right — stay low','4 short acceleration sprints — 10 metres, build gradually','2 mins walk to settle before the session'],
+   safety:'Move through each one with control. Do not rush.',cool:'Stretch legs and hips after the main session'},
+  {id:'wu3',name:'Cricket Ready Warm-Up',cat:'Warm-up',emoji:'🏏',time:'5 mins',diff:1,
+   needs:'A ball if available',
+   steps:['2 mins easy jog around the area','10 shoulder rotations each arm — big circles','10 wrist circles each direction','20 high knees on the spot','Throw and catch a ball gently if available — 10 reps each hand','5 shadow batting swings — slow and controlled','Ready to bat, bowl or field'],
+   safety:'Shoulders and wrists need proper warm-up before throwing.',cool:'Stretch arms and shoulders after the session'},
+  {id:'wu4',name:'Mobility Warm-Up',cat:'Warm-up',emoji:'🧘',time:'7 mins',diff:0,
+   needs:'A mat or flat surface',
+   steps:['Cat-cow on hands and knees — 10 reps slow','Hip flexor lunge each side — hold 20 seconds','Thoracic rotation seated — reach and hold each side 20 secs','Leg swings each direction — 10 each leg','Calf raises slow — 15 reps','Shoulder cross-body stretch — 20 secs each side','2 mins gentle movement — walk or light jog'],
+   safety:'Move slowly and breathe steadily throughout.',cool:'You are already warmed up and mobile'},
+  {id:'wu5',name:'Garden Warm-Up',cat:'Warm-up',emoji:'🌿',time:'5 mins',diff:1,
+   needs:'Outdoor space',
+   steps:['Walk for 2 minutes at a brisk pace','10 × jog on the spot with big arm swings','10 × side shuffle left and right','5 × forward lunge each leg — slow and controlled','10 × jumping jacks','Sprint 5 metres and stop — repeat 4 times','You are ready'],
+   safety:'Check the surface is clear before sprinting.',cool:'Stretch legs properly after the main session'},
+];
+
+const COOLDOWN_SESSIONS = [
+  {id:'cd1',name:'5-Minute Stretch',cat:'Cool-down',emoji:'🧊',time:'5 mins',diff:0,
+   needs:'Just you',
+   steps:['Standing quad stretch — 30 secs each leg, hold something if needed','Hamstring stretch seated on the floor — 30 secs each leg','Hip flexor standing lunge stretch — 30 secs each side','Calf stretch against a wall — 30 secs each leg','Standing forward fold — hang and breathe for 30 secs'],
+   safety:'Hold every stretch — do not bounce.',cool:'This is the cool-down'},
+  {id:'cd2',name:'Legs Stretch',cat:'Cool-down',emoji:'🦵',time:'6 mins',diff:0,
+   needs:'A mat or flat surface',
+   steps:['Lying quad stretch on one side — 30 secs each leg','Seated hamstring stretch — reach forward slowly — 30 secs each leg','Figure-4 glute stretch — cross one ankle over knee, gentle press — 30 secs each side','Hip flexor lunge stretch — 30 secs each side','Calf stretch on a wall — 30 secs each leg','Finish: hug both knees to chest — hold 30 secs'],
+   safety:'Never force a stretch. Breathe into it.',cool:'This is the cool-down'},
+  {id:'cd3',name:'Shoulders and Arms Stretch',cat:'Cool-down',emoji:'💪',time:'5 mins',diff:0,
+   needs:'Just you',
+   steps:['Shoulder cross-body stretch — pull arm across chest — 30 secs each','Overhead tricep stretch — reach behind your head — 30 secs each arm','Wrist flexor stretch — palm up, fingers back — 20 secs each wrist','Wrist extensor stretch — palm down, fingers back — 20 secs each','Doorway chest stretch — arms out, step through a doorway — hold 30 secs','Neck side stretch — ear to shoulder — 20 secs each side'],
+   safety:'Be gentle on the neck. Do not pull — let it rest.',cool:'This is the cool-down'},
+  {id:'cd4',name:'Calm Breathing Reset',cat:'Cool-down',emoji:'🌬',time:'5 mins',diff:0,
+   needs:'A quiet place to sit or lie down',
+   steps:['Lie on your back on a flat surface','Breathe naturally for 1 minute — just notice it','Box breathing: in for 4 counts, hold 4, out for 4, hold 4 — one round','Complete 6 rounds — about 3 minutes total','Breathe naturally again for 1 minute','You should feel genuinely calm and settled'],
+   safety:'If you feel dizzy, breathe normally and sit up slowly.',cool:'This is the cool-down'},
+  {id:'cd5',name:'Post-Training Recovery',cat:'Cool-down',emoji:'✅',time:'8 mins',diff:0,
+   needs:'A mat or flat surface',
+   steps:['Easy walk for 2 minutes to bring heart rate down','Quad stretch standing — 30 secs each leg','Hamstring stretch seated — 30 secs each leg','Hip flexor lunge — 30 secs each side','Calf stretch on wall — 30 secs each leg','Shoulder cross-body stretch — 20 secs each arm','Finish: lie flat, deep breaths — 1 minute'],
+   safety:'Do this within 30 minutes of finishing — it speeds recovery.',cool:'This is the cool-down'},
+];
+
+const COACH_SESSIONS = [
+  {id:'ru1',name:'Fast Feet',cat:'Rugby',emoji:'🏉',time:'10 mins',diff:2,
+   needs:'Just you and some space',
+   steps:['Warm-up: 2 mins jog and arm circles','5 x fast feet on the spot — 10 secs on, 5 secs rest','6 x side step — 3 each direction over 10 metres','4 x change-of-direction run — sharp and controlled','Cool-down: 1 min stretch — hips and calves'],
+   safety:'Stay low. Do not overstride on the side steps.',cool:'Hips and calf stretch'},
+  {id:'ru2',name:'Passing Against a Wall',cat:'Rugby',emoji:'🏉',time:'10 mins',diff:1,
+   needs:'A wall or rebounder, a rugby ball',
+   steps:['Warm-up: 2 mins jog and shoulder rolls','Stand 3 metres from the wall','10 x flat pass — left hand, hit the same spot each time','10 x flat pass — right hand','10 x spin pass each hand — keep it flat','Control beats power — hit the same spot every time','Cool-down: shoulder and wrist stretch'],
+   safety:'Control before power. Stay balanced.',cool:'Shoulder cross-body stretch'},
+  {id:'ru3',name:'Catch and Move',cat:'Rugby',emoji:'🏉',time:'10 mins',diff:2,
+   needs:'A ball, some space',
+   steps:['Warm-up: 2 mins jog and high knees','Throw ball up, catch and step left — 10 times','Throw ball up, catch and step right — 10 times','Throw high, move under it, take it cleanly — 10 times','Sprint 5 metres after each catch — 8 reps','Cool-down: stretch calves and quads'],
+   safety:'Keep your eyes on the ball. Do not watch your feet.',cool:'Calves and quads stretch'},
+  {id:'ru4',name:'Side-Step Practice',cat:'Rugby',emoji:'🏉',time:'10 mins',diff:2,
+   needs:'2 to 4 cones or markers',
+   steps:['Warm-up: 2 mins jog, hip circles','Set 2 cones 5 metres apart as a target defender','Walk through — weight on one foot, step off it hard','Jog through — keep it clean and low','Full pace — stay balanced on the step','8 x each direction — build gradually','Cool-down: hip flexor stretch'],
+   safety:'Quality over speed — a sloppy side step does not work.',cool:'Hip flexor and quad stretch'},
+  {id:'ru5',name:'Match-Day Movement Prep',cat:'Rugby',emoji:'🏉',time:'8 mins',diff:1,
+   needs:'Just you',
+   steps:['2 mins easy jog to raise temperature','8 x high knees — controlled','8 x butt kicks','4 x acceleration runs — build to 70%, not full speed','4 x side shuffles each direction','2 x jump and land — soft knees on landing','You are ready'],
+   safety:'This is not a training session — it is preparation. Keep it easy.',cool:'None needed'},
+  {id:'cr1',name:'Wall Catch Reactions',cat:'Cricket',emoji:'🏏',time:'10 mins',diff:1,
+   needs:'A wall, a tennis ball or cricket ball',
+   steps:['Warm-up: 2 mins jog and wrist circles','Stand 3 to 4 metres from a solid wall','10 x two-hand catches — throw firmly enough to test yourself','10 x right-hand only catches','10 x left-hand only catches','10 x underarm feed — vary the height and angle','5 drop-and-catch reactions — as fast as you can'],
+   safety:'Use a softer ball if the surface is hard.',cool:'Wrist and forearm stretch'},
+  {id:'cr2',name:'Batting Footwork',cat:'Cricket',emoji:'🏏',time:'10 mins',diff:1,
+   needs:'A marked crease area, optional bat',
+   steps:['Warm-up: 2 mins jog and hip swings','Mark a crease area with tape or chalk if possible','10 x front foot drive step — reach forward and stay balanced','10 x back foot pull step — weight transfers quickly','10 x alternate front and back','Add a bat if available — shadow drive and pull','Head still, weight moving in the right direction'],
+   safety:'Head still on every movement. Balance is the skill.',cool:'Hip flexor and hamstring stretch'},
+  {id:'cr3',name:'Throwing Accuracy',cat:'Cricket',emoji:'🏏',time:'10 mins',diff:1,
+   needs:'A ball, a target (cone, mark on wall)',
+   steps:['Warm-up: 2 mins jog and shoulder circles','Set a target on a wall or use a cone','10 x overarm throws — aim at the target every time','Use the crow hop: gather, small hop, then throw','10 x practice the gather and throw movement','Vary distance: 10m, 15m, 20m if space allows','Accuracy first, power comes after'],
+   safety:'Shoulder and elbow loaded hard by throwing — warm up properly.',cool:'Shoulder and arm stretch'},
+  {id:'cr4',name:'Reaction Catch',cat:'Cricket',emoji:'🏏',time:'8 mins',diff:2,
+   needs:'A ball, a wall, or a partner',
+   steps:['Warm-up: wrist and shoulder circles','Stand 2 metres from a wall','Throw the ball hard and catch the rebound — 15 reps','Alternate hands — 10 reps each hand','Step further back — 4 to 5 metres — 10 reps','Eyes on the ball at all times — not on your hands','Count your clean catches — try to beat it next time'],
+   safety:'Step back if the rebounds are too fast to control safely.',cool:'Wrist stretch and finger shake-out'},
+  {id:'cr5',name:'Bowling Target Practice',cat:'Cricket',emoji:'🏏',time:'10 mins',diff:1,
+   needs:'A ball, a marked target on the floor or wall',
+   steps:['Warm-up: 2 mins jog and shoulder rolls','Mark a full length target on the floor or a spot on a wall','10 x slow run-through — footwork and action only','5 x half-pace delivery — focus on landing on target','5 x full delivery — accuracy over pace','Front arm stays high — it drives the whole action','Count how many land on target — try to improve'],
+   safety:'Bowling loads the shoulder hard. Warm up properly and stop if it aches.',cool:'Shoulder and back stretch'},
+  {id:'te1',name:'Split-Step Practice',cat:'Tennis',emoji:'🎾',time:'8 mins',diff:1,
+   needs:'A racket, some space',
+   steps:['Warm-up: 2 mins jog and shoulder circles','Stand in ready position — racket up, knees soft','10 x split-step on the spot — both feet leave the ground, land quietly','Move left from the split step — 10 reps','Move right from the split step — 10 reps','Forward sprint from split step — 10 reps','The split step is the start of every shot'],
+   safety:'Land quietly on every split step — soft knees.',cool:'Calf and ankle stretch'},
+  {id:'te2',name:'Wall Rally',cat:'Tennis',emoji:'🎾',time:'10 mins',diff:1,
+   needs:'A racket, a clear wall',
+   steps:['Warm-up: 2 mins jog, arm circles, wrist circles','Stand about 3 metres from a solid wall','20 x forehand rally — stay controlled','20 x backhand rally — stay balanced','10 x alternate forehand and backhand','Try to keep a 15-hit rally — count out loud','Slow and precise first, then push the pace'],
+   safety:'Racket up and ready before the ball arrives.',cool:'Shoulder and elbow stretch'},
+  {id:'te3',name:'Side-to-Side Movement',cat:'Tennis',emoji:'🎾',time:'10 mins',diff:2,
+   needs:'Cones or markers, a racket',
+   steps:['Warm-up: 2 mins jog and side shuffles','Set cones about 5 metres apart as the court width','10 x split step, side shuffle left to cone, recover to centre','10 x split step, side shuffle right to cone, recover to centre','10 x alternate left and right on a call','Stay low and in ready position at the centre point','Quick feet between shots, smooth arrival at the ball'],
+   safety:'Stay on the balls of your feet throughout. Do not flat-foot.',cool:'Hip and calf stretch'},
+  {id:'te4',name:'Target Hits',cat:'Tennis',emoji:'🎾',time:'10 mins',diff:1,
+   needs:'A racket, a wall with a target mark, optional cones',
+   steps:['Warm-up: 2 mins jog, arm circles','Mark a target on the wall — about net height','10 x forehand drives at the target from 3 metres','10 x backhand drives at the target','Move to 5 metres — 10 x forehand, 10 x backhand','Count how many hit the target — try to beat it','Control is the goal. Power comes naturally with control.'],
+   safety:'Swing through the ball — do not stab at it.',cool:'Shoulder and wrist stretch'},
+  {id:'ho1',name:'Stick Control',cat:'Hockey',emoji:'🏑',time:'10 mins',diff:1,
+   needs:'A hockey stick, a ball',
+   steps:['Warm-up: 2 mins jog, wrist and shoulder circles','Tap the ball left-right-left-right on the spot — 30 reps','Indian dribble: push left then right in a rhythm — 30 reps','Small lifts with the stick, control back down — 10 each side','Clockwise circles around the ball — 10 reps','Anti-clockwise circles — 10 reps','Soft hands, quiet stick, ball stays close at all times'],
+   safety:'Soft hands. Gripping too hard slows everything down.',cool:'Wrist and forearm stretch'},
+  {id:'ho2',name:'Dribble Line',cat:'Hockey',emoji:'🏑',time:'10 mins',diff:1,
+   needs:'A stick, a ball, 5 cones in a line',
+   steps:['Warm-up: 2 mins jog and wrist circles','Set 5 cones in a straight line, 1 metre apart','5 x slow dribble through — close control, ball near stick','5 x medium pace — ball within 30cm of the stick head','5 x fast — head up, not watching the ball','Reverse stick weave: 5 x slow, then 5 x at pace','Stretch wrists and forearms after'],
+   safety:'Head up during fast dribble. Look where you are going.',cool:'Wrist and forearm stretch'},
+  {id:'ho3',name:'Change Direction',cat:'Hockey',emoji:'🏑',time:'10 mins',diff:2,
+   needs:'A stick, a ball, 4 cones in a square',
+   steps:['Warm-up: 2 mins jog, hip and shoulder circles','Set 4 cones in a square, 5 metres apart','5 x jog the square dribbling — smooth corners','5 x run the square — push the straights, sharp at corners','5 x reverse stick change: switch stick side mid-dribble','Add a sudden stop-and-go at one cone — 8 reps','Cool-down: stretch hips and lower back'],
+   safety:'Slow down enough to make clean direction changes.',cool:'Hip and lower back stretch'},
+  {id:'ho4',name:'Ball Control Challenge',cat:'Hockey',emoji:'🏑',time:'8 mins',diff:2,
+   needs:'A stick, a ball, a target or wall',
+   steps:['Warm-up: 2 mins jog and wrist circles','Station 1: 10 x flat push pass to a wall target — accuracy','Station 2: 10 x reverse stick pass — control over power','Station 3: 10 x hit pass — driven and aimed','Move target further: 10 metres — repeat station 1','Count how many hit the target — try to improve each time'],
+   safety:'Move your feet before every pass. No static striking.',cool:'Wrist and shoulder stretch'},
+  {id:'sc1',name:'Bodyweight Circuit',cat:'S&C',emoji:'💪',time:'15 mins',diff:2,
+   needs:'Just you — no equipment needed',
+   steps:['Warm-up: 2 mins jog or skipping — always warm up first','10 x press-ups — lower 3 seconds, push up fast','15 x bodyweight squats — full depth, controlled down','20 x walking lunges — 10 each leg','30 sec plank — hips level, breathe steadily','10 x glute bridges — squeeze at the top','Rest 90 seconds then repeat the circuit once'],
+   safety:'Quality over reps. Stop if form breaks down.',cool:'Legs and lower back stretch'},
+  {id:'sc2',name:'Core and Balance',cat:'S&C',emoji:'💪',time:'12 mins',diff:2,
+   needs:'A flat surface or mat',
+   steps:['Warm-up: 2 mins jog and hip circles','30 sec plank — do not let hips sag','20 sec side plank each side — head to heel line','10 x slow dead bug — back flat to floor throughout','20 sec single-leg balance — eyes open then eyes closed','10 x slow reverse lunge each leg','60 sec lower back stretch lying flat to finish'],
+   safety:'Back flat throughout the dead bug. Never arch.',cool:'Lower back and hip stretch'},
+  {id:'sc3',name:'Speed and Agility',cat:'S&C',emoji:'💪',time:'12 mins',diff:2,
+   needs:'Chalk lines, tape or a rope ladder on the ground',
+   steps:['Warm-up: 2 mins jog and high knees','2 x walk through the ladder — learn the footwork first','5 x single-foot run — one foot per square','5 x two-foot hop — both feet in each square','5 x lateral run — side-stepping through','3 x your own combination — smooth before fast','Light feet, quick arms, head up at all times'],
+   safety:'Smooth before fast. A messy fast is slower than a clean slow.',cool:'Calf and ankle stretch'},
+  {id:'sc4',name:'Garden Circuit',cat:'S&C',emoji:'💪',time:'20 mins',diff:2,
+   needs:'Outdoor space, 2 cones',
+   steps:['Warm-up: 5-minute Garden Warm-Up or 2 mins jog','4 x shuttle runs — cones 10 metres apart, sprint there and back','10 x press-ups','15 x squats','10 x jumping jacks','20 x high knees on the spot','30 secs rest between exercises — complete twice'],
+   safety:'Second round is harder. Keep form, reduce reps if needed.',cool:'Full leg and shoulder stretch'},
+  {id:'rv1',name:'Morning Stretch',cat:'Recovery',emoji:'🧘',time:'10 mins',diff:0,
+   needs:'A mat or flat surface',
+   steps:['Start lying on your back — 5 deep slow breaths','Hug both knees gently — hold 30 seconds','Roll to one side and sit up carefully','Cat-cow on hands and knees — breathe in and out x 10','Seated forward fold — hang and breathe — 30 secs','Standing fold — hang loosely — 20 secs','Roll up slowly, arms overhead, one big breath out'],
+   safety:'Move slowly and breathe throughout.',cool:'This is the cool-down'},
+  {id:'rv2',name:'Post-Sport Recovery',cat:'Recovery',emoji:'🧘',time:'12 mins',diff:0,
+   needs:'A flat surface',
+   steps:['Do this within 30 minutes of finishing sport','Quad stretch standing — 30 secs each leg','Hamstring stretch seated — 30 secs each leg','Hip flexor lunge stretch — 30 secs each side','Calf stretch on wall — 30 secs each leg','Shoulder stretch — 20 secs each arm','Box breathing to finish: in 4, hold 4, out 4 — 5 rounds'],
+   safety:'Do not skip this. Recovery is part of training.',cool:'This is the cool-down'},
+  {id:'rv3',name:'Breathing and Focus',cat:'Recovery',emoji:'🧘',time:'8 mins',diff:0,
+   needs:'A quiet place to sit or lie down',
+   steps:['Find somewhere quiet — sit upright or lie down','Box breathing: in 4 counts, hold 4, out 4, hold 4','Complete 8 rounds — about 4 minutes total','Breathe naturally and just observe it','If your mind wanders, bring it back — no frustration','End with 3 deep breaths — in through nose, long out through mouth'],
+   safety:'If dizzy, breathe normally and sit up slowly.',cool:'This is the cool-down'},
+  {id:'rv4',name:'Wind Down Routine',cat:'Recovery',emoji:'🧘',time:'10 mins',diff:0,
+   needs:'A mat, a wall',
+   steps:['Best in the evening — put the phone away first','Lie on your back on a mat or carpet','Breathe naturally for 2 minutes — just notice it','Legs up the wall: rest legs on a wall for 3 minutes','Hug knees gently to chest — 1 minute','5 deep slow breaths — in for 5 counts, out for 5','You should feel calm and ready for sleep'],
+   safety:'If legs feel numb against the wall, come down slowly.',cool:'This is the cool-down'},
+];
+
+const CREATOR_CHALLENGES = [
+  {id:'cc1',name:'Edit a 20-second clip',cat:'Video',emoji:'🎬',time:'20 mins',diff:1,
+   needs:'A phone or tablet with a video editor — iMovie, CapCut or similar',
+   steps:['Import your chosen clip and watch it through once','Decide what to keep — the best or clearest section','Trim the start and end to exactly 20 seconds','Add a simple title card if you want one','Export and watch it back — would you be proud of this tomorrow?'],
+   safety:'No real name, school, or location in the video.',done:'Edit complete'},
+  {id:'cc2',name:'Sports highlight reel',cat:'Video',emoji:'🏉',time:'30 mins',diff:2,
+   needs:'Saved sports footage, a video editor',
+   steps:['Collect 4 to 6 clips of you playing or practising sport','Put your best moment first — hook the viewer immediately','Add simple transitions — do not overcomplicate it','Add music if your editor allows — keep it sensible','Keep the total under 60 seconds — shorter is almost always better'],
+   safety:'No location, school name, or other people without permission.',done:'Reel complete'},
+  {id:'cc3',name:'Write a 30-second script',cat:'Tech',emoji:'📝',time:'15 mins',diff:1,
+   needs:'Pen and paper or a notes app',
+   steps:['Pick one specific tip — a rugby pass, batting grip, anything you know','Write an opening line that grabs attention — just one sentence','Explain the tip in 2 to 3 clear sentences — simple words only','Add a closing line — a challenge or something to remember','Count the words: aim for 60 to 80 (about 30 seconds speaking time)','Read it out loud — does it sound natural? Fix anything awkward'],
+   safety:'Check with a parent before filming or sharing anything.',done:'Script written'},
+  {id:'cc4',name:'Design a thumbnail',cat:'Design',emoji:'🖼',time:'20 mins',diff:1,
+   needs:'Canva, Photoshop or any design app',
+   steps:['Choose landscape format — 1280 by 720 pixels is standard','Pick a bold background colour that stands out at small size','Add large bold text — 4 words or fewer','Add one strong image or emoji if you want','Step back and look at it small — can you read it at thumbnail size?'],
+   safety:'No real name, school or location in the design.',done:'Design done'},
+  {id:'cc5',name:'Presenter practice',cat:'Tech',emoji:'🎙',time:'10 mins',diff:1,
+   needs:'A phone on a stable surface, good light',
+   steps:['Choose a topic you actually know — a sport skill or something real','Set up your phone — landscape, stable, light on your face','Record yourself for 30 to 60 seconds — no script, just talk','Watch it back — uncomfortable but essential','Note 2 things that went well and 1 to improve','Record a second take straight away — you will already be better'],
+   safety:'Private recording only. Do not share without parent approval.',done:'Practice done'},
+  {id:'cc6',name:'Roblox obstacle course',cat:'Roblox',emoji:'🎮',time:'45 mins',diff:2,
+   needs:'A device with Roblox Studio installed',
+   steps:['Open Roblox Studio and start a new baseplate project','Plan your course on paper first — start, 5 to 8 obstacles, finish','Build obstacle 1: a jump gap or moving platform','Add 2 to 3 more obstacles — vary the difficulty','Test it yourself start to finish','Name it, save it and challenge someone to beat your time'],
+   safety:'Keep your Roblox account private. No personal info in the game.',done:'Course built and saved'},
+  {id:'cc7',name:'Roblox training arena',cat:'Roblox',emoji:'🏟',time:'45 mins',diff:2,
+   needs:'A device with Roblox Studio',
+   steps:['Open Roblox Studio — new baseplate project','Decide your sport: rugby, cricket, parkour or anything you enjoy','Build the arena shape first — keep it simple','Add 2 to 3 interactive elements: targets, timers or collectables','Write out the rules, scoring, and how to win','Test it and fix anything that breaks — problem solving is the skill'],
+   safety:'Keep your account private. No personal info anywhere.',done:'Arena built and tested'},
+  {id:'cc8',name:'Sketch a bird box design',cat:'DT/Build',emoji:'🪵',time:'20 mins',diff:1,
+   needs:'Paper, pencil, ruler',
+   steps:['Look at a real bird box image for reference','Sketch the front view — include the hole, roof, and base','Sketch the side view next','Add measurements: estimate in centimetres if you can','Label each part: roof, walls, base, entrance hole, fixing point','Write one sentence explaining your design choice'],
+   safety:'Sketching only in this challenge — no cutting or tools needed.',done:'Sketch complete with labels and measurements'},
+  {id:'cc9',name:'Design a pencil holder',cat:'DT/Build',emoji:'✏️',time:'20 mins',diff:1,
+   needs:'Paper, pencil, ruler, colour pencils if available',
+   steps:['Think about who it is for — you, your mum, a gift?','Sketch the shape from the front — how tall, how wide?','Sketch it from the top — what shape is it?','Choose a material: wood, card, clay, upcycled tin?','Add decoration ideas — keep it simple','Write one sentence: what makes your design good?'],
+   safety:'Sketching and planning only. No cutting without adult supervision.',done:'Design sketched and annotated'},
+  {id:'cc10',name:'Plan a rugby boot rack',cat:'DT/Build',emoji:'🥾',time:'20 mins',diff:1,
+   needs:'Paper, pencil, ruler',
+   steps:['Measure how many pairs of boots need to fit — estimate the width','Sketch the front view: how wide, how many rows?','Sketch the side view: how deep to hold a boot?','Think about the material: wood, metal, plastic pipe?','Think about how it would fix to a wall or stand alone','Label and measure your sketch — centimetres or millimetres'],
+   safety:'Planning and sketching only in this challenge.',done:'Boot rack plan sketched with measurements'},
+  {id:'cc11',name:'Build a bridge',cat:'Lego/Build',emoji:'🌉',time:'30 mins',diff:2,
+   needs:'Lego, building blocks, or any construction material',
+   steps:['Set a challenge: the bridge must span at least 20cm gap','Plan the shape before you build — what will support the weight?','Build the two anchor points on each side first','Build the span connecting them','Test it with increasing weight — coins, a small book, a phone','Improve it: what broke first? Fix that part','Record your maximum load'],
+   safety:'Test weights carefully — do not drop heavy objects.',done:'Bridge built and tested'},
+  {id:'cc12',name:'Build a mini stadium',cat:'Lego/Build',emoji:'🏟',time:'40 mins',diff:2,
+   needs:'Lego or building blocks',
+   steps:['Decide which sport — rugby, cricket, tennis or hockey','Plan on paper first: pitch, stands, changing rooms, scoreboard','Build the pitch area first as the base','Add stands on 2 sides minimum','Add details: goalposts, scoreboards, dugouts','Stand back and look at it — what does it need?','What would you improve with more pieces?'],
+   safety:'Small pieces — keep them off the floor when finished.',done:'Stadium built and described'},
+  {id:'cc13',name:'Design a sports logo',cat:'Design',emoji:'🎨',time:'25 mins',diff:1,
+   needs:'Paper and pencils, or a design app',
+   steps:['Choose a sport or a team name to design for','Sketch 3 completely different shape ideas — do not commit yet','Pick the strongest one and develop it further','Add colour — 2 or 3 colours maximum','Add a team name or initials if it fits the design','Test it at small size — does it still work?'],
+   safety:'Your own original design only — do not copy existing badges.',done:'Logo designed'},
+  {id:'cc14',name:'Spelling challenge prep',cat:'Brain',emoji:'🧠',time:'20 mins',diff:1,
+   needs:'Paper and pen',
+   steps:['Write out 20 words — do not look them up yet','Test yourself: cover the list and write from memory','Check — circle every wrong word','Study the wrong ones: say it, spell it aloud, write it 3 times','Test yourself again with all 20','Final test: get someone else to test you'],
+   safety:'No pressure. The point is to improve, not to be perfect.',done:'Three rounds complete'},
+  {id:'cc15',name:'Build a marble run',cat:'Lego/Build',emoji:'🔵',time:'30 mins',diff:2,
+   needs:'Lego, cardboard tubes, tape, a marble or small ball',
+   steps:['Plan the route on paper — where will the marble start and end?','Build the first section and test it — does the marble roll cleanly?','Add a second section that connects to the first','Add at least one change of direction','Test the full run — adjust anything that blocks the marble','Count how many sections you managed'],
+   safety:'Marbles are a choking hazard — keep away from young children.',done:'Full run built and tested'},
+  {id:'cc16',name:'Design a match poster',cat:'Design',emoji:'📋',time:'25 mins',diff:1,
+   needs:'Paper and pencils, or Canva',
+   steps:['Decide: which match or sport is this poster for?','Choose a bold layout — the main image or graphic first','Add the key information: who, what, when, where','Keep text to a minimum — big and bold wins','Choose 2 or 3 colours that work together','Look at it from a distance — does it communicate quickly?'],
+   safety:'No real personal details — use imaginary names and dates.',done:'Poster designed'},
+];
+
+const CREATOR_RULES = [
+  'Create first, post later.',
+  'No real name, school name, uniform badge, address or location.',
+  'No public posting without parent approval.',
+  'No comments or DMs without parent approval.',
+  'Be funny, skilled or helpful — never cruel.',
+  'Make things you would still be proud of tomorrow.',
+  'Followers are not the goal. Skills are the goal.',
+];
+
+const DEFAULT_KIT = {
+  uniform:   ['Shirt or polo shirt','Jumper or blazer','Trousers or shorts','Socks','Shoes','Tie (if needed)','Dirty kit to washing basket'],
+  schoolBag: ['Homework','Reading book','Pencil case','Water bottle','Lunchbox or lunch card','Coat','Letters or forms'],
+  peKit:     ['PE top','PE shorts or trousers','Trainers','Socks','Water bottle','Dirty kit to basket after use'],
+  rugbyKit:  ['Rugby shirt','Shorts','Rugby socks','Boots','Gumshield','Water bottle','Base layer if cold','Dirty kit to basket after'],
+  cricketKit:['Cricket whites or kit','Trainers or spikes','Bat if needed','Pads and gloves if needed','Helmet if needed','Water bottle','Sun cream and hat if needed'],
+};
+
+const CHORES_SCHOOL = {
+  morning:     ['Make bed','Put pyjamas or dirty clothes in washing basket','School bag ready by the door'],
+  afterSchool: ['Shoes away','Coat hung up','Lunchbox and water bottle out'],
+  evening:     ['Clear plate after dinner','Dirty clothes in basket','Quick bedroom floor reset','School things ready for tomorrow'],
+};
+const CHORES_NON_SCHOOL = {
+  morning: ['Make bed','Dirty clothes in basket','Bedroom floor reset','Open curtains or window'],
+  mainJobs:[
+    'Help with animals','Take recycling out','Help tidy tools or stables with an adult',
+    'Bring logs or kindling','Help unload shopping','Hoover one small area',
+    'Wipe table after lunch','Sort shoes in the porch','Put folded clothes away',
+    '💰 Cut the grass (edges too — do it properly)','💰 Wash the family car',
+    '💰 Sweep the patio or path','💰 Stack logs neatly','💰 Wash outdoor windows',
+  ],
+  evening: ['Clear plate','Put away anything you got out','Reset bag, coat and kit for next day'],
+};
+
+const COACH_NOTE_PROMPTS = [
+  'What did my coach say?',
+  'What went well in training or a match?',
+  'What should I practise more?',
+  'What kit do I need next time?',
+  'One thing to remember',
+];
+
+const CSS = `
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;800&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0a0f0a;--surf:#101510;--card:#161d15;--card2:#1a2318;
+  --bdr:#243020;--bdr2:#2e3d28;
+  --teal:#4dbbb8;--tealL:#72d4d1;--tealD:#2d9a97;
+  --green:#7ab648;--amber:#d4924d;--amberL:#e8a860;--red:#d44a4a;
+  --tx:#e2ded2;--tx2:#8a9a80;--tx3:#506048;
+}
+body{background:var(--bg);color:var(--tx);font-family:'Nunito',sans-serif;overflow-x:hidden;}
+.app{min-height:100vh;max-width:860px;margin:0 auto;display:flex;flex-direction:column;}
+.hdr{padding:14px 18px 0;display:flex;justify-content:space-between;align-items:flex-end;}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:1.7rem;letter-spacing:.08em;color:var(--teal);line-height:1;}
+.logo span{color:var(--tx3);}
+.hdr-r{text-align:right;}
+.hdr-day{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:.06em;color:var(--tx2);line-height:1.1;}
+.hdr-date{font-size:.63rem;font-weight:700;color:var(--tx3);letter-spacing:.04em;}
+nav{display:flex;padding:8px 18px 0;border-bottom:1px solid var(--bdr);margin-top:8px;gap:1px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+nav::-webkit-scrollbar{display:none;}
+.nb{display:flex;align-items:center;gap:3px;padding:6px 8px 10px;border:none;background:none;
+  color:var(--tx3);cursor:pointer;font-family:'Nunito',sans-serif;font-weight:800;
+  font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;
+  border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;white-space:nowrap;}
+.nb:hover{color:var(--tx2);}
+.nb.on{color:var(--teal);border-bottom-color:var(--teal);}
+.cnt{flex:1;padding:14px 18px 40px;overflow-y:auto;}
+.card{background:var(--card);border:1px solid var(--bdr);border-radius:10px;padding:14px;margin-bottom:7px;}
+.sec{font-family:'Bebas Neue',sans-serif;font-size:.74rem;letter-spacing:.12em;color:var(--tx3);margin:13px 0 6px;}
+.ci{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bdr);cursor:pointer;user-select:none;transition:opacity .15s;}
+.ci:last-child{border-bottom:none;}
+.ci.ck{opacity:.38;}
+.cbox{width:22px;height:22px;border-radius:50%;border:2px solid var(--bdr2);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.cbox.on{background:var(--green);border-color:var(--green);}
+.clabel{font-size:.86rem;font-weight:700;flex:1;}
+.ci.ck .clabel{text-decoration:line-through;color:var(--tx3);}
+.progbar{height:4px;background:var(--bdr);border-radius:2px;overflow:hidden;margin:5px 0 2px;}
+.progfill{height:100%;background:var(--green);border-radius:2px;transition:width .4s ease;}
+.ptabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px;}
+.ptab{padding:4px 10px;border-radius:20px;border:1px solid var(--bdr2);background:none;
+  color:var(--tx2);cursor:pointer;font-family:'Nunito',sans-serif;font-weight:800;font-size:.66rem;
+  transition:all .15s;white-space:nowrap;}
+.ptab:hover{border-color:var(--teal);color:var(--teal);}
+.ptab.on{background:var(--teal);border-color:var(--teal);color:#001a1a;}
+.btn{padding:7px 13px;border:none;border-radius:7px;cursor:pointer;font-family:'Nunito',sans-serif;
+  font-weight:800;font-size:.78rem;transition:all .15s;display:inline-flex;align-items:center;gap:5px;}
+.btn-teal{background:var(--teal);color:#001a1a;}
+.btn-teal:hover{background:var(--tealL);}
+.btn-ghost{background:var(--card2);color:var(--tx2);border:1px solid var(--bdr2);}
+.btn-ghost:hover{color:var(--tx);}
+.btn-sm{padding:4px 9px;font-size:.7rem;}
+.del{background:none;border:none;cursor:pointer;color:var(--tx3);padding:3px;border-radius:4px;display:flex;align-items:center;transition:color .15s;flex-shrink:0;}
+.del:hover{color:var(--red);}
+label{font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--tx2);display:block;margin-bottom:3px;}
+input,select,textarea{background:var(--surf);border:1px solid var(--bdr2);color:var(--tx);border-radius:6px;
+  padding:7px 9px;font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:600;outline:none;width:100%;transition:border-color .15s;}
+input:focus,select:focus,textarea:focus{border-color:var(--teal);}
+select option{background:var(--surf);}
+textarea{resize:vertical;min-height:65px;}
+.empty{text-align:center;padding:28px 12px;color:var(--tx3);}
+.empty p{font-size:.82rem;font-weight:700;margin-top:7px;}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.fld{margin-bottom:7px;}
+::-webkit-scrollbar{width:2px;}
+::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:2px;}
+`;
+
+// ── MOOD WIDGET ───────────────────────────────────────────────────────────────
+function MoodWidget({ moods, setMoods }) {
+  const todayMood = moods.find(m => m.date === TODAY_DATE);
+  const opts = [{v:'tired',e:'😴',l:'Tired'},{v:'ok',e:'😐',l:'Alright'},{v:'good',e:'🔥',l:'Ready'}];
+  const set = v => setMoods(prev => [...prev.filter(m=>m.date!==TODAY_DATE), {date:TODAY_DATE,v}]);
+  return (
+    <div style={{marginBottom:10,padding:'11px 13px',background:'var(--card2)',borderRadius:10,border:'1px solid var(--bdr)'}}>
+      <div style={{fontSize:'.6rem',fontWeight:800,color:'var(--tx3)',letterSpacing:'.08em',marginBottom:7}}>ENERGY CHECK</div>
+      <div style={{display:'flex',gap:6}}>
+        {opts.map(o=>(
+          <button key={o.v} onClick={()=>set(o.v)} style={{flex:1,padding:'7px 4px',borderRadius:8,border:'2px solid',cursor:'pointer',textAlign:'center',transition:'all .15s',
+            borderColor:todayMood?.v===o.v?(o.v==='good'?'var(--teal)':o.v==='ok'?'var(--green)':'var(--bdr2)'):'var(--bdr)',
+            background:todayMood?.v===o.v?(o.v==='good'?'rgba(77,187,184,.12)':o.v==='ok'?'rgba(122,182,72,.12)':'rgba(255,255,255,.03)'):'none'}}>
+            <div style={{fontSize:'1.25rem',lineHeight:1}}>{o.e}</div>
+            <div style={{fontSize:'.57rem',fontWeight:800,color:'var(--tx3)',marginTop:3,letterSpacing:'.04em'}}>{o.l}</div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── BEST NEXT MOVE ────────────────────────────────────────────────────────────
+function BestNextMove({ isSchoolDay, energy, kitDone, kitTotal, workoutLog, creatorLog, choresChecked, setTab }) {
+  const kitOk = kitTotal === 0 || kitDone === kitTotal;
+  const trainedToday = workoutLog.some(w => w.date === TODAY_DATE);
+  const createdToday = creatorLog.some(c => c.date === TODAY_DATE);
+  const choresDoneCount = Object.values(choresChecked||{}).filter(Boolean).length;
+  const choresOk = choresDoneCount >= 2;
+
+  let move = {icon:'🎒',text:'Pack your bag and check your kit',tab:'school'};
+
+  if (energy === 'tired') {
+    move = {icon:'🧘',text:'Recovery session — stretch and breathe',tab:'coach'};
+  } else if (!kitOk && isSchoolDay) {
+    move = {icon:'🎒',text:'Sort your kit before anything else',tab:'school'};
+  } else if (!choresOk && !isSchoolDay) {
+    move = {icon:'🏡',text:'Choose one proper helping job',tab:'chores'};
+  } else if (!choresOk && isSchoolDay) {
+    move = {icon:'🏠',text:'After-school reset — quick 5 minutes',tab:'chores'};
+  } else if (!trainedToday && energy !== 'tired') {
+    move = {icon:'🏃',text:energy==='ok'?'10-minute sport skills session':'Full training session — you are ready',tab:'coach'};
+  } else if (!createdToday) {
+    move = {icon:'🎬',text:'Open one Create challenge',tab:'create'};
+  } else if (trainedToday && !energy) {
+    move = {icon:'🧘',text:'Recovery done today — good rhythm',tab:'coach'};
+  } else {
+    move = {icon:'⭐',text:'Strong day — coach notes or review progress',tab:'progress'};
+  }
+
+  return (
+    <div onClick={()=>setTab(move.tab)} style={{background:'linear-gradient(135deg,rgba(77,187,184,.09),rgba(77,187,184,.02))',border:'1px solid rgba(77,187,184,.25)',borderRadius:10,padding:'12px 15px',marginBottom:8,cursor:'pointer',display:'flex',alignItems:'center',gap:12}}>
+      <div style={{fontSize:'1.6rem',flexShrink:0}}>{move.icon}</div>
+      <div style={{flex:1}}>
+        <div style={{fontSize:'.58rem',fontWeight:800,color:'var(--tealD)',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:3}}>Best Next Move</div>
+        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:'1.05rem',letterSpacing:'.04em',color:'var(--teal)',lineHeight:1.15}}>{move.text}</div>
+      </div>
+      <div style={{color:'var(--teal)',opacity:.6,fontSize:'.8rem'}}>→</div>
+    </div>
+  );
+}
+
+// ── TODAY VIEW ────────────────────────────────────────────────────────────────
+function TodayView({ isSchoolDay, setIsSchoolDay, moods, setMoods, kitDone, kitTotal, workoutLog, creatorLog, choresChecked, setTab }) {
+  const energy = moods.find(m=>m.date===TODAY_DATE)?.v || 'ok';
+  const todayMission = moods.length > 0 ? (moods.find(m=>m.date===TODAY_DATE) ? MISSIONS[new Date().getDate() % MISSIONS.length] : MISSIONS[0]) : MISSIONS[new Date().getDate() % MISSIONS.length];
+  const weekWorkouts = workoutLog.filter(w=>{
+    const d=new Date(w.date),now=new Date(),ws=new Date(now);
+    ws.setDate(now.getDate()-now.getDay()+1);ws.setHours(0,0,0,0);return d>=ws;
+  }).length;
+  const kitOk = kitTotal===0 || kitDone===kitTotal;
+
+  return (
+    <div>
+      <div style={{marginBottom:12}}>
+        <div style={{fontSize:'.67rem',fontWeight:700,color:'var(--tx3)',textTransform:'uppercase',letterSpacing:'.06em'}}>
+          {HOUR<12?'Good morning':HOUR<17?'Good afternoon':'Good evening'}, Chino
+        </div>
+        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:'2.2rem',letterSpacing:'.03em',lineHeight:1.05}}>
+          Chino <span style={{color:'var(--teal)'}}>HQ</span>
+        </div>
+        <div style={{fontSize:'.7rem',fontWeight:700,color:'var(--tx3)',marginTop:2}}>
+          {new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
+        </div>
+      </div>
+
+      <div style={{display:'flex',gap:5,marginBottom:10}}>
+        {[{v:true,l:'School Day'},{v:false,l:'Home Day'}].map(o=>(
+          <button key={String(o.v)} onClick={()=>setIsSchoolDay(o.v)} style={{
+            flex:1,padding:'8px 6px',borderRadius:8,border:'2px solid',cursor:'pointer',
+            fontFamily:'Nunito,sans-serif',fontWeight:800,fontSize:'.8rem',transition:'all .15s',
+            background:isSchoolDay===o.v?'var(--teal)':'none',
+            borderColor:isSchoolDay===o.v?'var(--teal)':'var(--bdr2)',
+            color:isSchoolDay===o.v?'#001a1a':'var(--tx2)'}}>
+            {o.l}
+          </button>
+        ))}
+      </div>
+
+      <MoodWidget moods={moods} setMoods={setMoods}/>
+      <BestNextMove isSchoolDay={isSchoolDay} energy={energy} kitDone={kitDone} kitTotal={kitTotal} workoutLog={workoutLog} creatorLog={creatorLog} choresChecked={choresChecked} setTab={setTab}/>
+
+      <div style={{background:'linear-gradient(135deg,rgba(77,187,184,.07),rgba(77,187,184,.02))',border:'1px solid rgba(77,187,184,.18)',borderRadius:10,padding:'12px 15px',marginBottom:8}}>
+        <div style={{fontSize:'.58rem',fontWeight:800,color:'var(--tealD)',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:3}}>Today's Mission</div>
+        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:'1.5rem',letterSpacing:'.06em',color:'var(--teal)',lineHeight:1.1}}>{todayMission}</div>
+        <div style={{fontSize:'.66rem',color:'var(--tx3)',marginTop:3}}>Mindset only — not extra work</div>
+      </div>
+
+      <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:6,marginBottom:8}}>
+        {[
+          {n:weekWorkouts,l:'Trained',col:'var(--teal)'},
+          {n:creatorLog.filter(c=>c.date===TODAY_DATE).length,l:'Created',col:'var(--green)'},
+          {n:Object.values(choresChecked||{}).filter(Boolean).length,l:'Helped',col:'var(--amber)'},
+        ].map(s=>(
+          <div key={s.l} style={{background:'var(--card2)',borderRadius:8,padding:'10px',textAlign:'center',border:'1px solid var(--bdr)'}}>
+            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:'1.7rem',color:s.col,lineHeight:1}}>{s.n}</div>
+            <div style={{fontSize:'.57rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'.06em',color:'var(--tx3)',marginTop:2}}>{s.l}</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{background:'var(--card)',border:`1px solid ${kitOk?'rgba(122,182,72,.3)':'var(--bdr)'}`,borderRadius:10,padding:'11px 14px',cursor:'pointer'}}
+        onClick={()=>setTab('school')}>
+        <div style={{display:'flex',alignItems:'center',gap:10}}>
+          <div style={{fontSize:'1.4rem'}}>{kitOk?'✅':'🎒'}</div>
+          <div style={{flex:1}}>
+            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:'.95rem',letterSpacing:'.04em',color:kitOk?'var(--green)':'var(--tx)'}}>
+              {kitOk?'Kit sorted — good to go':'School kit — tap to check'}
+            </div>
+            {!kitOk && (
+              <>
+                <div className="progbar" style={{maxWidth:200,marginTop:4}}>
+                  <div className="progfill" style={{width:`${kitTotal>0?Math.round(kitDone/kitTotal*100):100}%`}}/>
+                </div>
+                <div style={{fontSize:'.65rem',fontWeight:700,color:'var(--tx3)',marginTop:1}}>{kitDone}/{kitTotal} items checked</div>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div style={{textAlign:'center',padding:'12px 0 4px'}}>
+        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:'.95rem',letterSpacing:'.12em',color:'var(--tx3)'}}>
+          {isSchoolDay?'READY · FOCUSED · RESPECTFUL':'HELPFUL · CREATIVE · ACTIVE'}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── SCHOOL VIEW ───────────────────────────────────────────────────────────────
+function SchoolView({ kit, setKit, kitChecked, setKitChecked }) {
+  const [sub, setSub] = useState('uniform');
+  const [newItem, setNewItem] = useState('');
+  const SUB = [
+    {id:'uniform',  label:'Uniform',    emoji:'👕', key:'uniform'},
+    {id:'bag',      label:'School Bag', emoji:'🎒', key:'schoolBag'},
+    {id:'pe',       label:'PE Kit',     emoji:'👟', key:'peKit'},
+    {id:'rugby',    label:'Rugby Kit',  emoji:'🏉', key:'rugbyKit'},
+    {id:'cricket',  label:'Cricket Kit',emoji:'🏏', key:'cricketKit'},
+  ];
+  const sKey = SUB.find(s=>s.id===sub).key;
+  const items = kit[sKey] || [];
+  const done = items.filter(i => kitChecked[sKey+'_'+i]).length;
+  const pct  = items.length>0 ? Math.round(done/items.length*100) : 100;
+  const allDone = items.length===0 || done===items.length;
+
+  const toggle     = item => setKitChecked(p=>({...p,[sKey+'_'+item]:!p[sKey+'_'+item]}));
+  const addItem    = () => { if(!newItem.trim()) return; setKit(p=>({...p,[sKey]:[...(p[sKey]||[]),newItem.trim()]})); setNewItem(''); };
+  const removeItem = item => { setKit(p=>({...p,[sKey]:p[sKey].filter(i=>i!==item)})); setKitChecked(p=>{const n={...p};delete n[sKey+'_'+item];return n;}); };
+
+  return (
+    <div>
+      <div style={{marginBottom:12}}>
+        <div style={{fontSize:'.6rem',fontWeight:800,color:'var(--tx3)',letterSpacing:'.1em',textTransform:'uppercase'}}>School Ready</div>
+        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:'1.7rem',letterSpacing:'.04em',color:'var(--teal)',lineHeight:1.05}}>School</div>
+      </div>
+      <div style={{display:'flex',gap:4,marginBottom:10,overflowX:'auto',paddingBottom:2}}>
+        {SUB.map(s=>(
+          <button key={s.id} onClick={()=>{setSub(s.id);setNewItem('');}} style={{
+            flexShrink:0,padding:'7px 8px',borderRadius:8,
+            border:`1px solid ${sub===s.id?'var(--teal)':'var(--bdr2)'}`,
+            background:sub===s.id?'rgba(77,187,184,.1)':'none',cursor:'pointer',
+            fontFamily:'Nunito,sans-serif',fontWeight:800,fontSize:'.63rem',
+            color:sub===s.id?'var(--teal)':'var(--tx3)',textAlign:'center',transition:'all .15s',minWidth:58}}>
+            <div style={{fontSize:'1rem',marginBottom:2}}>{s.emoji}</div>
+            {s.label}
+          </button>
+        ))}
+      </div>
+      <div style={{background:allDone?'rgba(122,182,72,.08)':'var(--card2)',border:`1px solid ${allDone?'rgba(122,182,72,.3)':'var(--bdr)'}`,borderRadius:9,padding:'9px 12px',marginBottom:9}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:'.95rem',letterSpacing:'.04em',color:allDone?'var(--green)':'var(--tx2)'}}>
+            {allDone?'✅ All sorted':`${done} / ${items.length} checked`}
+          </div>
+          <div style={{fontSize:'.66rem',fontWeight:800,color:allDone?'var(--green)':'var(--tx3)'}}>{pct}%</div>
+        </div>
+        <div className="progbar" style={{marginTop:6}}>
+          <div className="progfill" style={{width:`${pct}%`,background:allDone?'var(--green)':'var(--teal)'}}/>
+        </div>
+      </div>
+      <div className="card">
+        {items.map(item=>{
+          const checked = !!kitChecked[sKey+'_'+item];
+          return (
+            <div key={item} className={`ci ${checked?'ck':''}`} onClick={()=>toggle(item)}>
+              <div className={`cbox ${checked?'on':''}`}>{checked&&<Check size={11} color="#fff"/>}</div>
+              <span className="clabel">{item}</span>
+              <button className="del" onClick={e=>{e.stopPropagation();removeItem(item);}}><Trash2 size={12}/></button>
+            </div>
+          );
+        })}
+        <div style={{display:'flex',gap:5,marginTop:7}}>
+          <input value={newItem} onChange={e=>setNewItem(e.target.value)} placeholder="Add item..."
+            onKeyDown={e=>e.key==='Enter'&&addItem()} style={{flex:1}}/>
+          <button className="btn btn-teal btn-sm" onClick={addItem}><Plus size={12}/></button>
+        </div>
+      </div>
+      <div style={{textAlign:'center',padding:'7px 0',fontSize:'.65rem',color:'var(--tx3)',fontStyle:'italic'}}>
+        Checklist resets each morning.
+      </div>
+    </div>
+  );
+}
+
+// ── COACH VIEW ────────────────────────────────────────────────────────────────
+function CoachView({ workoutLog, setWorkoutLog, coachNotes, setCoachNotes, fixtures, setFixtures }) {
+  const [filter, setFilter] = useState('all');
+  const [expanded, setExpanded] = useState(null);
+  const [completing, setCompleting] = useState(null);
+  const [sessionNotes, setSessionNotes] = useState('');
+  const [showAddFix, setShowAddFix] = useState(false);
+  const [newFix, setNewFix] = useState({date:'',sport:'Rugby',location:'',kit:'',arrival:'',notes:'',result:'',wentWell:'',practise:''});
+  const [notePrompt, setNotePrompt] = useState(COACH_NOTE_PROMPTS[0]);
+  const [noteText, setNoteText] = useState('');
+  const [showNoteHistory, setShowNoteHistory] = useState(false);
+
+  const FILTERS = [
+    {id:'all',l:'All'},{id:'warmup',l:'Warm-up'},{id:'rugby',l:'Rugby'},
+    {id:'cricket',l:'Cricket'},{id:'tennis',l:'Tennis'},{id:'hockey',l:'Hockey'},
+    {id:'sc',l:'S & C'},{id:'cooldown',l:'Cool-down'},{id:'recovery',l:'Recovery'},
+    {id:'fixtures',l:'Fixtures'},{id:'notes',l:'Notes'},
+  ];
+
+  const getSessions = () => {
+    if (filter==='warmup')   return WARMUP_SESSIONS;
+    if (filter==='cooldown') return COOLDOWN_SESSIONS;
+    if (filter==='recovery') return COACH_SESSIONS.filter(s=>s.cat==='Recovery');
+    if (filter==='sc')       return COACH_SESSIONS.filter(s=>s.cat==='S&C');
+    if (['rugby','cricket','tennis','hockey'].includes(filter))
+      return COACH_SESSIONS.filter(s=>s.cat===filter.charAt(0).toUpperCase()+filter.slice(1));
+    return [...WARMUP_SESSIONS,...COACH_SESSIONS,...COOLDOWN_SESSIONS];
+  };
+
+  const todayDone = workoutLog.filter(w=>w.date===TODAY_DATE).map(w=>w.sessionId);
+  const weekDone  = workoutLog.filter(w=>{const d=new Date(w.date),now=new Date(),ws=new Date(now);ws.setDate(now.getDate()-now.getDay()+1);ws.setHours(0,0,0,0);return d>=ws;}).length;
+
+  const diffCol = d => d===0?'var(--teal)':d===1?'var(--green)':d===2?'var(--amber)':'#e55';
+  const diffLbl = d => ['Easy','Easy','Medium','Hard'][d] || 'Easy';
+
+  const logSession = s => {
+    setWorkoutLog(p=>[...p,{id:uid(),date:TODAY_DATE,sessionId:s.id,workoutName:s.cat+': '+s.name,notes:sessionNotes}]);
+    setCompleting(null);setSessionNotes('');setExpanded(null);
+  };
+
+  const saveNote = () => {
+    if(!noteText.trim()) return;
+    setCoachNotes(p=>[...p,{id:uid(),date:TODAY_DATE,prompt:notePrompt,text:noteText.trim()}]);
+    setNoteText('');
+  };
+
+  const saveFix = () => {
+    if(!newFix.date&&!newFix.sport) return;
+    setFixtures(p=>[...p,{id:uid(),...newFix}]);
+    setNewFix({date:'',sport:'Rugby',location:'',kit:'',arrival:'',notes:'',result:'',wentWell:'',practise:''});
+    setShowAddFix(false);
+  };
+
+  if (filter==='fixtures') return (
+    <div>
+      <div style={{marginBottom:12}}>
+        <div style={{fontSize:'.6rem',fontWeight:800,color:'var(--tx3)',letterSpacing:'.1em',textTransform:'uppercase'}}>Match Prep</div>
+        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:'1.7rem',letterSpacing:'.04em',color:'var(--teal)',lineHeight:1.05}}>Fixtures</div>
+      </div>
+      <div className="ptabs">
+        {FILTERS.map(f=><button key={f.id} className={`ptab ${filter===f.id?'on':''}`} onClick={()=>{setFilter(f.id);setExpanded(null);}}>{f.l}</button>)}
+      </div>
+      <button className="btn btn-teal btn-sm" style={{marginBottom:10}} onClick={()=>setShowAddFix(v=>!v)}>
+        {showAddFix?'Cancel':'+ Add Fixture'}
+      </button>
+      {showAddFix && (
+        <div className="card" style={{marginBottom:10}}>
+          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:'.9rem',color:'var(--teal)',marginBottom:10}}>New Fixture</div>
+          <div className="frow">
+            <div className="fld"><label>Date</label><input type="date" value={newFix.date} onChange={e=>setNewFix(p=>({...p,date:e.target.value}))}/></div>
+            <div className="fld"><label>Sport</label>
+              <select value={newFix.sport} onChange={e=>setNewFix(p=>({...p,sport:e.target.value}))}>
+                {['Rugby','Cricket','Tennis','Hockey','Athletics','Other'].map(s=><option key={s}>{s}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="frow">
+            <div className="fld"><label>Location</label><input value={newFix.location} onChange={e=>setNewFix(p=>({...p,location:e.target.value}))} placeholder="School, away ground..."/></div>
+            <div className="fld"><label>Arrival time</label><input value={newFix.arrival} onChange={e=>setNewFix(p=>({...p,arrival:e.target.value}))} placeholder="e.g. 1:30pm"/></div>
+          </div>
+          <div className="fld"><label>Kit needed</label><input value={newFix.kit} onChange={e=>setNewFix(p=>({...p,kit:e.target.value}))} placeholder="Rugby kit, gumshield..."/></div>
+          <div className="fld"><label>Notes</label><textarea value={newFix.notes} onChange={e=>setNewFix(p=>({...p,notes:e.target.value}))} placeholder="Anything to know..."/></div>
+          <div className="frow">
+            <div className="fld"><label>Result / score</label><input value={newFix.result} onChange={e=>setNewFix(p=>({...p,result:e.target.value}))} placeholder="Won 24-10..."/></div>
+            <div className="fld"><label>One thing to practise</label><input value={newFix.practise} onChange={e=>setNewFix(p=>({...p,practise:e.target.value}))} placeholder="Side step, catching..."/></div>
+          </div>
+          <div className="fld"><label>What went well</label><input value={newFix.wentWell} onChange={e=>setNewFix(p=>({...p,wentWell:e.target.value}))} placeholder="Passing, attitude..."/></div>
+          <button className="btn btn-teal" style={{width:'100%',justifyContent:'center',marginTop:4}} onClick={saveFix}>Save fixture</button>
+        </div>
+      )}
+      {fixtures.length===0 ? (
+        <div className="empty"><div style={{fontSize:'2.5rem'}}>🏆</div><p>No fixtures added yet</p></div>
+      ) : (
+        [...fixtures].sort((a,b)=>a.date.localeCompare(b.date)).map(f=>(
+          <div key={f.id} style={{background:'var(--card)',border:'1px solid var(--bdr)',borderRadius:10,padding:'12px 14px',marginBottom:7}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:4}}>
+              <div>
+                <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:'1rem',letterSpacing:'.04em',color:'var(--teal)'}}>{f.sport} — {f.date?new Date(f.date+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}):''}</div>
+                {f.location&&<div style={{fontSize:'.75rem',fontWeight:700,color:'var(--tx2)',marginTop:1}}>{f.location}{f.arrival?' · '+f.arrival:''}</div>}
+              </div>
+              <button className="del" onClick={()=>setFixtures(p=>p.filter(x=>x.id!==f.id))}><Trash2 size={12}/></button>
+            </div>
+            {f.kit&&<div style={{fontSize:'.72rem',color:'var(--tx3)',marginTop:3}}><strong style={{color:'var(--tx2)'}}>Kit:</strong> {f.kit}</div>}
+            {f.notes&&<div style={{fontSize:'.72rem',color:'var(--tx3)',marginTop:2}}>{f.notes}</div>}
+            {f.result&&<div style={{fontSize:'.72rem',color:'var(--green)',marginTop:3,fontWeight:800}}>Result: {f.result}</div>}
+            {f.wentWell&&<div style={{fontSize:'.72rem',color:'var(--tx3)',marginTop:2}}><strong style={{color:'var(--tx2)'}}>Went well:</strong> {f.wentWell}</div>}
+            {f.practise&&<div style={{fontSize:'.72rem',color:'var(--amber)',marginTop:2,fontWeight:700}}>Practise: {f.practise}</div>}
+          </div>
+        ))
+      )}
+    </div>
+  );
+
+  if (filter==='notes') return (
+    <div>
+      <div style={{marginBottom:12}}>
+        <div style={{fontSize:'.6rem',fontWeight:800,color:'var(--tx3)',letterSpacing:'.1em',textTransform:'uppercase'}}>Private</div>
+        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:'1.7rem',letterSpacing:'.04em',color:'var(--teal)',lineHeight:1.05}}>Coach Notes</div>
+      </div>
+      <div className="ptabs">
+        {FILTERS.map(f=><button key={f.id} className={`ptab ${filter===f.id?'on':''}`} onClick={()=>{setFilter(f.id);setExpanded(null);}}>{f.l}</button>)}
+      </div>
+      <div className="card" style={{marginBottom:10}}>
+        <div className="fld">
+          <label>Prompt</label>
+          <select value={notePrompt} onChange={e=>setNotePrompt(e.target.value)}>
+            {COACH_NOTE_PROMPTS.map(p=><option key={p}>{p}</option>)}
+          </select>
+        </div>
+        <div className="fld">
+          <textarea value={noteText} onChange={e=>setNoteText(e.target.value)} placeholder="Write your note here..."/>
+        </div>
+        <button className="btn btn-teal" style={{width:'100%',justifyContent:'center'}} onClick={saveNote}>Save note</button>
+      </div>
+      {coachNotes.filter(n=>n.date===TODAY_DATE).length>0 && (
+        <div style={{marginBottom:10}}>
+          <div className="sec">Today</div>
+          {coachNotes.filter(n=>n.date===TODAY_DATE).map(n=>(
+            <div key={n.id} style={{background:'var(--card2)',borderRadius:8,padding:'10px 13px',marginBottom:5,borderLeft:'3px solid var(--teal)',display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+              <div style={{flex:1}}>
+                <div style={{fontSize:'.65rem',fontWeight:800,color:'var(--teal)',marginBottom:3}}>{n.prompt}</div>
+                <div style={{fontSize:'.84rem',color:'var(--tx)',lineHeight:1.5}}>{n.text}</div>
+              </div>
+              <button className="del" onClick={()=>setCoachNotes(p=>p.filter(x=>x.id!==n.id))}><Trash2 size={12}/></button>
+            </div>
+          ))}
+        </div>
+      )}
+      <button className="btn btn-ghost btn-sm" onClick={()=>setShowNoteHistory(v=>!v)}>
+        {showNoteHistory?'Hide history':'Show history'} ({coachNotes.filter(n=>n.date!==TODAY_DATE).length})
+      </button>
+      {showNoteHistory && coachNotes.filter(n=>n.date!==TODAY_DATE).sort((a,b)=>b.date.localeCompare(a.date)).map(n=>(
+        <div key={n.id} style={{background:'var(--card2)',borderRadius:8,padding:'10px 13px',marginBottom:5,borderLeft:'3px solid var(--bdr2)',opacity:.75,marginTop:5,display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+          <div style={{flex:1}}>
+            <div style={{fontSize:'.62rem',fontWeight:800,color:'var(--tx3)',marginBottom:2}}>{fmtDate(n.date)} · {n.prompt}</div>
+            <div style={{fontSize:'.82rem',color:'var(--tx2)'}}>{n.text}</div>
+          </div>
+          <button className="del" onClick={()=>setCoachNotes(p=>p.filter(x=>x.id!==n.id))}><Trash2 size={12}/></button>
+        </div>
+      ))}
+      {coachNotes.length===0 && <div className="empty"><div style={{fontSize:'2.5rem'}}>📋</div><p>Write your first note</p></div>}
+    </div>
+  );
+
+  const sessions = getSessions();
+
+  return (
+    <div>
+      <div style={{marginBottom:12}}>
+        <div style={{fontSize:'.6rem',fontWeight:800,color:'var(--tx3)',letterSpacing:'.1em',textTransform:'uppercase'}}>Your Sports Coach</div>
+        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:'1.7rem',letterSpacing:'.04em',color:'var(--teal)',lineHeight:1.05}}>Coach</div>
+        <div style={{fontSize:'.67rem',color:'var(--tx3)',marginTop:2}}>{weekDone} sessions this week</div>
+      </div>
+      <div className="ptabs">
+        {FILTERS.map(f=><button key={f.id} className={`ptab ${filter===f.id?'on':''}`} onClick={()=>{setFilter(f.id);setExpanded(null);}}>{f.l}</button>)}
+      </div>
+      <div style={{fontSize:'.65rem',fontWeight:700,color:'var(--tx3)',marginBottom:10,fontStyle:'italic'}}>⚠️ Warm up before every session. Stop if anything hurts. Ask an adult if unsure.</div>
+      {sessions.map(s=>{
+        const isExp  = expanded===s.id;
+        const isDone = todayDone.includes(s.id);
+        const isCmp  = completing===s.id;
+        return (
+          <div key={s.id} style={{marginBottom:6,borderRadius:10,overflow:'hidden',
+            border:`1px solid ${isDone?'rgba(122,182,72,.35)':'var(--bdr)'}`,
+            background:isDone?'rgba(122,182,72,.04)':'var(--card)'}}>
+            <div style={{padding:'11px 13px',cursor:'pointer',userSelect:'none',display:'flex',justifyContent:'space-between',alignItems:'center'}}
+              onClick={()=>setExpanded(isExp?null:s.id)}>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:2}}>
+                  <span style={{fontSize:'1.1rem'}}>{s.emoji}</span>
+                  <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:'.95rem',letterSpacing:'.04em',color:isDone?'var(--green)':'var(--tx)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{s.name}{isDone?' ✓':''}</div>
+                </div>
+                <div style={{fontSize:'.64rem',fontWeight:700,color:'var(--tx3)'}}>
+                  <span style={{color:diffCol(s.diff),background:diffCol(s.diff)+'22',padding:'1px 6px',borderRadius:10,marginRight:5}}>{s.cat}</span>
+                  {s.time}
+                  {s.diff>0&&<span style={{marginLeft:5,color:diffCol(s.diff)}}>{diffLbl(s.diff)}</span>}
+                </div>
+              </div>
+              <div style={{color:'var(--teal)',fontSize:'.8rem',transition:'transform .2s',transform:isExp?'rotate(180deg)':'none',marginLeft:8,flexShrink:0}}>▼</div>
+            </div>
+            {isExp && (
+              <div style={{padding:'0 13px 12px',borderTop:'1px solid var(--bdr)'}}>
+                <div className="sec" style={{marginTop:9}}>What you need</div>
+                <div style={{fontSize:'.8rem',color:'var(--tx2)',fontWeight:700,marginBottom:8}}>{s.needs}</div>
+                <div className="sec">How to do it</div>
+                {s.steps.map((step,i)=>(
+                  <div key={i} style={{display:'flex',gap:8,padding:'5px 0',borderBottom:'1px solid var(--bdr)',alignItems:'flex-start'}}>
+                    <div style={{width:'17px',height:'17px',borderRadius:'50%',background:'var(--teal)',color:'#001a1a',fontFamily:"'Bebas Neue',sans-serif",fontSize:'.68rem',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,marginTop:'1px'}}>{i+1}</div>
+                    <div style={{fontSize:'.83rem',fontWeight:700,color:'var(--tx2)',flex:1}}>{step}</div>
+                  </div>
+                ))}
+                {s.cool&&s.cool!=='This is the cool-down'&&(
+                  <>
+                    <div className="sec">Cool-down</div>
+                    <div style={{fontSize:'.78rem',color:'var(--tx3)',fontWeight:700,fontStyle:'italic'}}>{s.cool}</div>
+                  </>
+                )}
+                {s.safety&&(
+                  <div style={{marginTop:8,padding:'6px 10px',background:'rgba(212,146,77,.08)',border:'1px solid rgba(212,146,77,.2)',borderRadius:7}}>
+                    <div style={{fontSize:'.7rem',fontWeight:800,color:'var(--amber)'}}>⚠️ {s.safety}</div>
+                  </div>
+                )}
+                {!isDone&&!isCmp&&<button className="btn btn-teal" style={{width:'100%',marginTop:10,justifyContent:'center'}} onClick={e=>{e.stopPropagation();setCompleting(s.id);}}>Done properly ✓</button>}
+                {isCmp&&(
+                  <div style={{marginTop:9,padding:'9px',background:'var(--card2)',borderRadius:8}}>
+                    <label>Quick note (optional)</label>
+                    <input value={sessionNotes} onChange={e=>setSessionNotes(e.target.value)} placeholder="How did it feel?" style={{marginBottom:7}}/>
+                    <div style={{display:'flex',gap:5}}>
+                      <button className="btn btn-teal btn-sm" style={{flex:1}} onClick={()=>logSession(s)}>Captain effort ✓</button>
+                      <button className="btn btn-ghost btn-sm" onClick={()=>setCompleting(null)}>Cancel</button>
+                    </div>
+                  </div>
+                )}
+                {isDone&&<div style={{marginTop:9,textAlign:'center',fontSize:'.73rem',fontWeight:800,color:'var(--green)'}}>✅ Done today — strong work</div>}
+              </div>
+            )}
+          </div>
+        );
+      })}
+      {sessions.length===0&&<div className="empty"><div style={{fontSize:'2.5rem'}}>🏃</div><p>No sessions in this filter</p></div>}
+      {workoutLog.length>0&&(
+        <div style={{marginTop:16}}>
+          <div className="sec">Recent sessions</div>
+          {[...workoutLog].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5).map(w=>(
+            <div key={w.id} style={{background:'var(--card2)',borderRadius:7,padding:'8px 12px',marginBottom:5,borderLeft:'3px solid var(--teal)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+              <div>
+                <div style={{fontWeight:800,fontSize:'.84rem'}}>{w.workoutName}</div>
+                <div style={{fontSize:'.65rem',color:'var(--tx3)',marginTop:1}}>{fmtDate(w.date)}{w.notes?' · '+w.notes:''}</div>
+              </div>
+              <button className="del" onClick={()=>setWorkoutLog(p=>p.filter(x=>x.id!==w.id))}><Trash2 size={12}/></button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── CREATE VIEW ───────────────────────────────────────────────────────────────
+function CreateView({ creatorLog, setCreatorLog }) {
+  const [filter, setFilter] = useState('All');
+  const [expanded, setExpanded] = useState(null);
+  const [completing, setCompleting] = useState(null);
+  const [logNotes, setLogNotes] = useState('');
+  const [showRules, setShowRules] = useState(false);
+
+  const CATS = ['All','Tech','Video','Roblox','DT/Build','Design','Brain'];
+  const filtered = filter==='All' ? CREATOR_CHALLENGES : CREATOR_CHALLENGES.filter(c=>c.cat===filter);
+  const todayDone = creatorLog.filter(c=>c.date===TODAY_DATE).map(c=>c.challengeId);
+
+  const diffCol = d => d===0?'var(--teal)':d===1?'var(--green)':d===2?'var(--amber)':'#e55';
+
+  const logChallenge = c => {
+    setCreatorLog(p=>[...p,{id:uid(),date:TODAY_DATE,challengeId:c.id,challengeName:c.name,notes:logNotes}]);
+    setCompleting(null);setLogNotes('');setExpanded(null);
+  };
+
+  return (
+    <div>
+      <div style={{marginBottom:12}}>
+        <div style={{fontSize:'.6rem',fontWeight:800,color:'var(--tx3)',letterSpacing:'.1em',textTransform:'uppercase'}}>Maker Mode</div>
+        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:'1.7rem',letterSpacing:'.04em',color:'var(--teal)',lineHeight:1.05}}>Create</div>
+        <div style={{fontSize:'.67rem',color:'var(--tx3)',marginTop:2}}>Build skills. Make things. Stay safe.</div>
+      </div>
+
+      <div className="ptabs">
+        {CATS.map(c=><button key={c} className={`ptab ${filter===c?'on':''}`} onClick={()=>{setFilter(c);setExpanded(null);}}>{c}</button>)}
+        <button className={`ptab ${showRules?'on':''}`} onClick={()=>setShowRules(v=>!v)}>📋 Rules</button>
+      </div>
+
+      {showRules&&(
+        <div style={{background:'rgba(77,187,184,.06)',border:'1px solid rgba(77,187,184,.18)',borderRadius:9,padding:'12px 14px',marginBottom:10}}>
+          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:'.9rem',letterSpacing:'.08em',color:'var(--teal)',marginBottom:7}}>Creator Rules</div>
+          {CREATOR_RULES.map((r,i)=>(
+            <div key={i} style={{display:'flex',gap:7,marginBottom:4,alignItems:'flex-start'}}>
+              <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:'.8rem',color:'var(--teal)',flexShrink:0,marginTop:1}}>{i+1}</span>
+              <span style={{fontSize:'.8rem',color:'var(--tx2)',fontWeight:700}}>{r}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {filtered.map(c=>{
+        const isExp  = expanded===c.id;
+        const isDone = todayDone.includes(c.id);
+        const isCmp  = completing===c.id;
+        return (
+          <div key={c.id} style={{marginBottom:6,borderRadius:10,overflow:'hidden',
+            border:`1px solid ${isDone?'rgba(122,182,72,.35)':'var(--bdr)'}`,
+            background:isDone?'rgba(122,182,72,.04)':'var(--card)'}}>
+            <div style={{padding:'11px 13px',cursor:'pointer',userSelect:'none',display:'flex',justifyContent:'space-between',alignItems:'center'}}
+              onClick={()=>setExpanded(isExp?null:c.id)}>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:2}}>
+                  <span style={{fontSize:'1.1rem'}}>{c.emoji}</span>
+                  <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:'.95rem',letterSpacing:'.04em',color:isDone?'var(--green)':'var(--tx)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{c.name}{isDone?' ✓':''}</div>
+                </div>
+                <div style={{fontSize:'.64rem',fontWeight:700,color:'var(--tx3)'}}>
+                  <span style={{color:diffCol(c.diff),background:diffCol(c.diff)+'22',padding:'1px 6px',borderRadius:10,marginRight:5}}>{c.cat}</span>
+                  {c.time}
+                </div>
+              </div>
+              <div style={{color:'var(--teal)',fontSize:'.8rem',transition:'transform .2s',transform:isExp?'rotate(180deg)':'none',marginLeft:8,flexShrink:0}}>▼</div>
+            </div>
+            {isExp&&(
+              <div style={{padding:'0 13px 12px',borderTop:'1px solid var(--bdr)'}}>
+                <div className="sec" style={{marginTop:9}}>What you need</div>
+                <div style={{fontSize:'.8rem',color:'var(--tx2)',fontWeight:700,marginBottom:8}}>{c.needs}</div>
+                <div style={{fontSize:'.79rem',color:'var(--tx3)',marginBottom:8}}>{c.desc}</div>
+                <div className="sec">How to do it</div>
+                {c.steps.map((step,i)=>(
+                  <div key={i} style={{display:'flex',gap:8,padding:'5px 0',borderBottom:'1px solid var(--bdr)',alignItems:'flex-start'}}>
+                    <div style={{width:'17px',height:'17px',borderRadius:'50%',background:'var(--teal)',color:'#001a1a',fontFamily:"'Bebas Neue',sans-serif",fontSize:'.68rem',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,marginTop:'1px'}}>{i+1}</div>
+                    <div style={{fontSize:'.82rem',fontWeight:700,color:'var(--tx2)',flex:1}}>{step}</div>
+                  </div>
+                ))}
+                {c.safety&&(
+                  <div style={{marginTop:8,padding:'6px 10px',background:'rgba(212,146,77,.08)',border:'1px solid rgba(212,146,77,.2)',borderRadius:7}}>
+                    <div style={{fontSize:'.7rem',fontWeight:800,color:'var(--amber)'}}>⚠️ {c.safety}</div>
+                  </div>
+                )}
+                {c.done&&<div style={{fontSize:'.7rem',fontWeight:800,color:'var(--teal)',marginTop:8,letterSpacing:'.04em'}}>Finish goal: {c.done}</div>}
+                {!isDone&&!isCmp&&<button className="btn btn-teal" style={{width:'100%',marginTop:10,justifyContent:'center'}} onClick={e=>{e.stopPropagation();setCompleting(c.id);}}>Challenge done ✓</button>}
+                {isCmp&&(
+                  <div style={{marginTop:9,padding:'9px',background:'var(--card2)',borderRadius:8}}>
+                    <label>Quick note (optional)</label>
+                    <input value={logNotes} onChange={e=>setLogNotes(e.target.value)} placeholder="How did it go?" style={{marginBottom:7}}/>
+                    <div style={{display:'flex',gap:5}}>
+                      <button className="btn btn-teal btn-sm" style={{flex:1}} onClick={()=>logChallenge(c)}>Captain creativity ✓</button>
+                      <button className="btn btn-ghost btn-sm" onClick={()=>setCompleting(null)}>Cancel</button>
+                    </div>
+                  </div>
+                )}
+                {isDone&&<div style={{marginTop:9,textAlign:'center',fontSize:'.73rem',fontWeight:800,color:'var(--green)'}}>✅ Done today — maker skills building</div>}
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      {creatorLog.length>0&&(
+        <div style={{marginTop:16}}>
+          <div className="sec">Recent challenges</div>
+          {[...creatorLog].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5).map(c=>(
+            <div key={c.id} style={{background:'var(--card2)',borderRadius:7,padding:'8px 12px',marginBottom:5,borderLeft:'3px solid var(--green)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+              <div>
+                <div style={{fontWeight:800,fontSize:'.84rem'}}>{c.challengeName}</div>
+                <div style={{fontSize:'.65rem',color:'var(--tx3)',marginTop:1}}>{fmtDate(c.date)}{c.notes?' · '+c.notes:''}</div>
+              </div>
+              <button className="del" onClick={()=>setCreatorLog(p=>p.filter(x=>x.id!==c.id))}><Trash2 size={12}/></button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── CHORES VIEW ───────────────────────────────────────────────────────────────
+function ChoresView({ isSchoolDay, choresChecked, setChoresChecked }) {
+  const key = (section, item) => `${TODAY_DATE}_${section}_${item}`;
+  const toggle = (section, item) => { const k=key(section,item); setChoresChecked(prev=>({...prev,[k]:!prev[k]})); };
+  const checked = (section, item) => !!choresChecked[key(section,item)];
+  const mainJobKey = `${TODAY_DATE}_mainJob_selected`;
+
+  const sectionData = isSchoolDay
+    ? [
+        {id:'morning',label:'Morning — 5 mins',emoji:'☀️',items:CHORES_SCHOOL.morning},
+        {id:'after',label:'After school',emoji:'🏠',items:CHORES_SCHOOL.afterSchool},
+        {id:'evening',label:'Evening reset',emoji:'🌙',items:CHORES_SCHOOL.evening},
+      ]
+    : [
+        {id:'morning',label:'Morning reset',emoji:'☀️',items:CHORES_NON_SCHOOL.morning},
+        {id:'evening',label:'Evening reset',emoji:'🌙',items:CHORES_NON_SCHOOL.evening},
+      ];
+
+  const totalChores = sectionData.reduce((n,s)=>n+s.items.length,0)+(!isSchoolDay?1:0);
+  const doneChores  = sectionData.reduce((n,s)=>n+s.items.filter(i=>checked(s.id,i)).length,0)+((!isSchoolDay&&choresChecked[mainJobKey])?1:0);
+  const allDone = doneChores===totalChores && totalChores>0;
+
+  return (
+    <div>
+      <div style={{marginBottom:12}}>
+        <div style={{fontSize:'.6rem',fontWeight:800,color:'var(--tx3)',letterSpacing:'.1em',textTransform:'uppercase'}}>{isSchoolDay?'Quick reset':'Helping out'}</div>
+        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:'1.7rem',letterSpacing:'.04em',color:'var(--teal)',lineHeight:1.05}}>Chores</div>
+        <div style={{fontSize:'.67rem',color:'var(--tx3)',marginTop:2}}>{isSchoolDay?'Calm start. Ready for tomorrow.':'One proper job. Help the family.'}</div>
+      </div>
+
+      <div style={{background:allDone?'rgba(122,182,72,.08)':'var(--card2)',border:`1px solid ${allDone?'rgba(122,182,72,.3)':'var(--bdr)'}`,borderRadius:9,padding:'9px 12px',marginBottom:10}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:'.95rem',letterSpacing:'.04em',color:allDone?'var(--green)':'var(--tx2)'}}>
+            {allDone?'All done — captain effort 🏆':`${doneChores} of ${totalChores} done`}
+          </div>
+          <div style={{fontSize:'.66rem',fontWeight:800,color:allDone?'var(--green)':'var(--tx3)'}}>{totalChores>0?Math.round(doneChores/totalChores*100):100}%</div>
+        </div>
+        <div className="progfill" style={{height:4,background:allDone?'var(--green)':'var(--teal)',borderRadius:2,marginTop:6,transition:'width .4s ease',width:`${totalChores>0?Math.round(doneChores/totalChores*100):100}%`}}/>
+      </div>
+
+      {sectionData.map(s=>(
+        <div key={s.id} style={{marginBottom:7}}>
+          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:'.86rem',letterSpacing:'.08em',color:'var(--tx3)',marginBottom:5,display:'flex',alignItems:'center',gap:5}}>
+            {s.emoji} {s.label}
+          </div>
+          <div className="card" style={{padding:'8px 14px'}}>
+            {s.items.map(item=>(
+              <div key={item} className={`ci ${checked(s.id,item)?'ck':''}`} onClick={()=>toggle(s.id,item)}>
+                <div className={`cbox ${checked(s.id,item)?'on':''}`}>{checked(s.id,item)&&<Check size={11} color="#fff"/>}</div>
+                <span className="clabel">{item}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      {!isSchoolDay&&(
+        <div style={{marginTop:4}}>
+          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:'.86rem',letterSpacing:'.08em',color:'var(--tx3)',marginBottom:5}}>💪 One proper helping job</div>
+          <div className="card" style={{padding:'8px 14px'}}>
+            <div className="fld" style={{marginBottom:6}}>
+              <select value={choresChecked[`${TODAY_DATE}_job_pick`]||''} onChange={e=>setChoresChecked(prev=>({...prev,[`${TODAY_DATE}_job_pick`]:e.target.value}))}>
+                <option value="">Choose a job...</option>
+                {CHORES_NON_SCHOOL.mainJobs.map(j=><option key={j}>{j}</option>)}
+              </select>
+            </div>
+            {choresChecked[`${TODAY_DATE}_job_pick`]&&(
+              <div className={`ci ${choresChecked[mainJobKey]?'ck':''}`} onClick={()=>setChoresChecked(prev=>({...prev,[mainJobKey]:!prev[mainJobKey]}))}>
+                <div className={`cbox ${choresChecked[mainJobKey]?'on':''}`}>{choresChecked[mainJobKey]&&<Check size={11} color="#fff"/>}</div>
+                <span className="clabel">{choresChecked[`${TODAY_DATE}_job_pick`]}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── PROGRESS VIEW ─────────────────────────────────────────────────────────────
+function ProgressView({ workoutLog, creatorLog, choresChecked, kitChecked, wins, setWins }) {
+  const [newWin, setNewWin] = useState('');
+  const getWeekCount = arr => arr.filter(w=>{
+    const d=new Date(w.date),now=new Date(),ws=new Date(now);
+    ws.setDate(now.getDate()-now.getDay()+1);ws.setHours(0,0,0,0);return d>=ws;
+  }).length;
+
+  const weekCoach   = getWeekCount(workoutLog);
+  const weekCreate  = getWeekCount(creatorLog);
+  const totalCoach  = workoutLog.length;
+  const totalCreate = creatorLog.length;
+  const weekChores  = Object.keys(choresChecked||{}).filter(k=>k.startsWith(TODAY_DATE)&&choresChecked[k]).length;
+
+  const levelBadge = n => n===0?null:n<3?{label:'Bronze',color:'#cd7f32'}:n<6?{label:'Silver',color:'#c0c0c0'}:n<10?{label:'Gold',color:'#d4924d'}:{label:'Captain',color:'var(--teal)'};
+  const coachBadge = levelBadge(totalCoach);
+
+  const addWin = () => { if(!newWin.trim()) return; setWins(p=>[...p,{id:uid(),date:TODAY_DATE,text:newWin.trim()}]); setNewWin(''); };
+
+  return (
+    <div>
+      <div style={{marginBottom:12}}>
+        <div style={{fontSize:'.6rem',fontWeight:800,color:'var(--tx3)',letterSpacing:'.1em',textTransform:'uppercase'}}>This week</div>
+        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:'1.7rem',letterSpacing:'.04em',color:'var(--teal)',lineHeight:1.05}}>Progress</div>
+      </div>
+
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:6,marginBottom:10}}>
+        {[
+          {n:weekCoach,l:'Sessions',col:'var(--teal)'},
+          {n:weekCreate,l:'Created',col:'var(--green)'},
+          {n:weekChores,l:'Helped',col:'var(--amber)'},
+        ].map(s=>(
+          <div key={s.l} style={{background:'var(--card2)',borderRadius:8,padding:'10px',textAlign:'center',border:'1px solid var(--bdr)'}}>
+            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:'1.8rem',color:s.col,lineHeight:1}}>{s.n}</div>
+            <div style={{fontSize:'.57rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'.06em',color:'var(--tx3)',marginTop:2}}>{s.l}</div>
+          </div>
+        ))}
+      </div>
+
+      {coachBadge&&(
+        <div style={{background:'rgba(77,187,184,.07)',border:'1px solid rgba(77,187,184,.2)',borderRadius:10,padding:'11px 14px',marginBottom:10,display:'flex',alignItems:'center',gap:12}}>
+          <div style={{fontSize:'1.8rem'}}>{coachBadge.label==='Bronze'?'🥉':coachBadge.label==='Silver'?'🥈':coachBadge.label==='Gold'?'🥇':'⭐'}</div>
+          <div>
+            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:'1.2rem',letterSpacing:'.06em',color:coachBadge.color}}>{coachBadge.label}</div>
+            <div style={{fontSize:'.7rem',fontWeight:700,color:'var(--tx3)'}}>{totalCoach} training sessions — strong rhythm</div>
+          </div>
+        </div>
+      )}
+
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6,marginBottom:10}}>
+        {[
+          {n:totalCoach,l:'Total sessions',col:'var(--teal)'},
+          {n:totalCreate,l:'Create challenges',col:'var(--green)'},
+        ].map(s=>(
+          <div key={s.l} style={{background:'var(--card2)',borderRadius:8,padding:'10px 12px',border:'1px solid var(--bdr)'}}>
+            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:'1.8rem',color:s.col,lineHeight:1}}>{s.n}</div>
+            <div style={{fontSize:'.6rem',fontWeight:800,color:'var(--tx3)',letterSpacing:'.06em',marginTop:3,textTransform:'uppercase'}}>{s.l}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="sec">Wins and good stuff</div>
+      <div style={{display:'flex',gap:5,marginBottom:8}}>
+        <input value={newWin} onChange={e=>setNewWin(e.target.value)} placeholder="Write a win..." onKeyDown={e=>e.key==='Enter'&&addWin()} style={{flex:1}}/>
+        <button className="btn btn-teal btn-sm" onClick={addWin}><Plus size={12}/></button>
+      </div>
+      {wins.length===0
+        ? <div className="empty"><p>Log your first win — anything counts</p></div>
+        : [...wins].sort((a,b)=>b.date.localeCompare(a.date)).map(w=>(
+            <div key={w.id} style={{background:'var(--card2)',borderRadius:7,padding:'8px 12px',marginBottom:5,borderLeft:'3px solid var(--teal)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+              <div>
+                <div style={{fontWeight:800,fontSize:'.84rem'}}>{w.text}</div>
+                <div style={{fontSize:'.65rem',color:'var(--tx3)',marginTop:1}}>{fmtDate(w.date)}</div>
+              </div>
+              <button className="del" onClick={()=>setWins(p=>p.filter(x=>x.id!==w.id))}><Trash2 size={12}/></button>
+            </div>
+          ))
+      }
+    </div>
+  );
+}
+
+// ── ALBERT HUB ────────────────────────────────────────────────────────────────
+function AlbertHub() {
+  const [tab, setTab] = useState('today');
+  const [isSchoolDay, setIsSchoolDay] = useState(()=>{
+    const saved=store.get('albert_schoolDay');
+    return saved!==null?saved:![5,6].includes(new Date().getDay());
+  });
+  const [moods,       setMoods]       = useState([]);
+  const [workoutLog,  setWorkoutLog]  = useState([]);
+  const [creatorLog,  setCreatorLog]  = useState([]);
+  const [wins,        setWins]        = useState([]);
+  const [coachNotes,  setCoachNotes]  = useState([]);
+  const [fixtures,    setFixtures]    = useState([]);
+  const [choresChecked,setChoresChecked]=useState({});
+  const [kit,         setKit]         = useState(null);
+  const [kitChecked,  setKitChecked]  = useState({});
+  const [loaded,      setLoaded]      = useState(false);
+
+  useEffect(()=>{
+    const el=document.createElement('style');
+    el.textContent=CSS;
+    document.head.appendChild(el);
+    return ()=>document.head.removeChild(el);
+  },[]);
+
+  useEffect(()=>{
+    setMoods(store.get('albert_moods')||[]);
+    setWorkoutLog(store.get('albert_workouts')||[]);
+    setCreatorLog(store.get('albert_creator')||[]);
+    setWins(store.get('albert_wins')||[]);
+    setCoachNotes(store.get('albert_coachNotes')||[]);
+    setFixtures(store.get('albert_fixtures')||[]);
+    setChoresChecked(store.get(`albert_chores_${TODAY_DATE}`)||{});
+    setKit(store.get('albert_kit')||{...DEFAULT_KIT});
+    setKitChecked(store.get(`albert_kitChecked_${TODAY_DATE}`)||{});
+    setLoaded(true);
+  },[]);
+
+  useEffect(()=>{ if(!loaded) return;
+    store.set('albert_moods',moods);
+    store.set('albert_workouts',workoutLog);
+    store.set('albert_creator',creatorLog);
+    store.set('albert_wins',wins);
+    store.set('albert_coachNotes',coachNotes);
+    store.set('albert_fixtures',fixtures);
+    store.set('albert_schoolDay',isSchoolDay);
+  },[moods,workoutLog,creatorLog,wins,coachNotes,fixtures,isSchoolDay,loaded]);
+
+  useEffect(()=>{ if(!loaded) return; store.set(`albert_chores_${TODAY_DATE}`,choresChecked); },[choresChecked,loaded]);
+  useEffect(()=>{ if(!loaded) return; store.set(`albert_kitChecked_${TODAY_DATE}`,kitChecked); },[kitChecked,loaded]);
+  useEffect(()=>{ if(!loaded||!kit) return; store.set('albert_kit',kit); },[kit,loaded]);
+
+  if(!loaded||!kit) return (
+    <div style={{height:'100vh',display:'flex',alignItems:'center',justifyContent:'center',color:'#506048',fontFamily:'sans-serif',fontSize:'14px'}}>Loading...</div>
+  );
+
+  const allKitItems = [
+    ...(kit.schoolBag||[]).map(i=>({k:`schoolBag_${i}`})),
+    ...(kit.uniform||[]).map(i=>({k:`uniform_${i}`})),
+    ...(kit.peKit||[]).map(i=>({k:`peKit_${i}`})),
+    ...(kit.rugbyKit||[]).map(i=>({k:`rugbyKit_${i}`})),
+    ...(kit.cricketKit||[]).map(i=>({k:`cricketKit_${i}`})),
+  ];
+  const kitDone  = allKitItems.filter(i=>kitChecked[i.k]).length;
+  const kitTotal = allKitItems.length;
+
+  const TABS = [
+    {id:'today',   label:'Today',   icon:'🏠'},
+    {id:'school',  label:'School',  icon:'🏫'},
+    {id:'coach',   label:'Coach',   icon:'🏃'},
+    {id:'create',  label:'Create',  icon:'🎬'},
+    {id:'chores',  label:'Chores',  icon:'🏡'},
+    {id:'progress',label:'Progress',icon:'📈'},
+  ];
+
+  return (
+    <div className="app">
+      <div className="hdr">
+        <div>
+          <div className="logo">Chino<span> HQ</span></div>
+          <div style={{fontSize:'.58rem',fontWeight:800,color:'var(--tx3)',letterSpacing:'.1em',marginTop:1}}>SPORTY · CREATIVE · CHINO</div>
+        </div>
+        <div className="hdr-r">
+          <div className="hdr-day">{new Date().toLocaleDateString('en-GB',{weekday:'long'})}</div>
+          <div className="hdr-date">{new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</div>
+          <div style={{marginTop:3,fontSize:'.58rem',fontWeight:800,color:isSchoolDay?'var(--teal)':'var(--amber)',letterSpacing:'.06em',textAlign:'right'}}>
+            {isSchoolDay?'● SCHOOL':'● HOME'}
+          </div>
+        </div>
+      </div>
+
+      <nav>
+        {TABS.map(t=>(
+          <button key={t.id} className={`nb ${tab===t.id?'on':''}`} onClick={()=>setTab(t.id)}>
+            <span style={{fontSize:'.85rem'}}>{t.icon}</span> {t.label}
+          </button>
+        ))}
+      </nav>
+
+      <div className="cnt">
+        {tab==='today'    && <TodayView isSchoolDay={isSchoolDay} setIsSchoolDay={setIsSchoolDay} moods={moods} setMoods={setMoods} kitDone={kitDone} kitTotal={kitTotal} workoutLog={workoutLog} creatorLog={creatorLog} choresChecked={choresChecked} setTab={setTab}/>}
+        {tab==='school'   && <SchoolView kit={kit} setKit={setKit} kitChecked={kitChecked} setKitChecked={setKitChecked}/>}
+        {tab==='coach'    && <CoachView workoutLog={workoutLog} setWorkoutLog={setWorkoutLog} coachNotes={coachNotes} setCoachNotes={setCoachNotes} fixtures={fixtures} setFixtures={setFixtures}/>}
+        {tab==='create'   && <CreateView creatorLog={creatorLog} setCreatorLog={setCreatorLog}/>}
+        {tab==='chores'   && <ChoresView isSchoolDay={isSchoolDay} choresChecked={choresChecked} setChoresChecked={setChoresChecked}/>}
+        {tab==='progress' && <ProgressView workoutLog={workoutLog} creatorLog={creatorLog} choresChecked={choresChecked} kitChecked={kitChecked} wins={wins} setWins={setWins}/>}
+      </div>
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<AlbertHub/>);
+  </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('data:application/javascript,' + encodeURIComponent(`
+        const CACHE = 'chino-hq-v1';
+        const ASSETS = [
+          'https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js',
+          'https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js',
+          'https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.3/babel.min.js'
+        ];
+        self.addEventListener('install', e => e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS))));
+        self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))));
+      `)).catch(()=>{});
+    }
+  </script>
+</body>
+</html>
